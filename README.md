@@ -1,69 +1,70 @@
 # CLOUD-TP-frontend
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+Frontend of the **CLOUD-TP** project developed with React. This README explains how to run the application locally and how to deploy it to AWS S3 using AWS CLI.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Prerequisites
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Make sure you have the following tools installed:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+* [Node.js](https://nodejs.org)
+* [AWS CLI](https://aws.amazon.com/cli/) (only required for AWS deployment)
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Running the application locally
 
-### `npm run build`
+1. Build the application:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm run build
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. Serve the application locally:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+serve -s build
+```
 
-### `npm run eject`
+> This will start a local server, and you can view the application in your browser.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Deploying the application to an S3 bucket
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. Build the application:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run build
+```
 
-## Learn More
+2. Configure your AWS CLI credentials:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+aws configure set aws_access_key_id <your access key>
+aws configure set aws_secret_access_key <your secret key>
+aws configure set aws_session_token <your session token>   # required if using AWS Academy Learner Lab
+aws configure set region us-east-1
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+3. Verify that your bucket exists and is accessible:
 
-### Code Splitting
+```bash
+aws s3 ls
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+4. Sync the build folder to your S3 bucket:
 
-### Analyzing the Bundle Size
+```bash
+aws s3 sync build/ s3://<your-bucket-name>
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+> This will deploy the React application to your S3 bucket and make it accessible depending on the bucket permissions.
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Additional Notes
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+* If you are using **temporary credentials** (such as in AWS Academy Learner Lab), remember they **expire** after some time and need to be updated.
+* This README assumes you already have an S3 bucket created and ready for deployment.
