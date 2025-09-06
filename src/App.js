@@ -1,23 +1,28 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import {Routes, Route, BrowserRouter} from "react-router-dom";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Test from "./pages/Test";
+import CreatePackage from "./pages/CreatePackage";
+import UpdatePackage from "./pages/UpdatePackage";
+import Auth from "./pages/Auth";
+import TrackPackage from "./pages/TrackPackage";
+import AppLayout from "./components/AppLayout";
 
 function App() {
     return (
-        <Router>
-            <nav>
-                <Link to="/">Home</Link> |{" "}
-                <Link to="/profile">Profile</Link>
-                <Link to="/test">Test connection</Link>
-            </nav>
-
+        <BrowserRouter>
             <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/test" element={<Test />} />
+                <Route path="/" element={<AppLayout />}>
+                    <Route index element={<Home />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="test" element={<Test />} />
+                    <Route path="package/create" element={<CreatePackage />} />
+                    <Route path="package/update" element={<UpdatePackage />} />
+                    <Route path="track" element={<TrackPackage />} />
+                    <Route path="auth" element={<Auth />} />
+                </Route>
             </Routes>
-        </Router>
+        </BrowserRouter>
     );
 }
 
