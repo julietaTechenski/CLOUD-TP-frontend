@@ -1,13 +1,46 @@
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import { Modal, Button, Card, Badge, Select, Typography } from "antd"
 import { EnvironmentOutlined, ClockCircleOutlined, CheckCircleTwoTone } from "@ant-design/icons"
 
 const { Title, Text } = Typography
 
+
+const packageStates = Object.freeze({
+    created: "CREATED",
+    onHold: "ON_HOLD",
+    inTransit: "IN_TRANSIT",
+    delivered: "DELIVERED",
+    cancelled: "CANCELLED",
+});
+
+
+const actions = Object.freeze({
+    sentToDepot: "SEND_DEPOT",
+    arrivedDepot: "ARRIVED_DEPOT",
+    sentToFinal: "SEND_FINAL",
+    arrivedFinal: "ARRIVED_FINAL",
+    cancelled: "CANCELLED",
+});
+
+// /depots
+// /depots/{id}
 export default function UpdatePackage({ isOpen, onClose, packageData }) {
-    const [modalState, setModalState] = useState("send-to")
+    const [modalState, setModalState] = useState("send-to");
+
+    useEffect(() => {
+        if (packageData?.tracks?.length) {
+            setModalState(
+                packageData.tracks[packageData.tracks.length - 1].action === actions.arrivedDepot
+                    ? "arrived-at"
+                    : "send-to"
+            );
+        }
+    }, [packageData]);
+
     const [destinationType, setDestinationType] = useState("")
     const [selectedDepot, setSelectedDepot] = useState("")
+    const [shipmentStatus, setShipmentStatus] = useState("");
+
 
     const depots = [
         { id: "depot-a", name: "Depot A - Norte" },
@@ -16,14 +49,24 @@ export default function UpdatePackage({ isOpen, onClose, packageData }) {
         { id: "depot-d", name: "Depot D - Oeste" },
     ]
 
-    const handleArrivedClick = () => setModalState("arrived-at")
-
     const handleConfirm = () => {
         console.log("Confirmando actualización:", {
             modalState,
             destinationType,
             selectedDepot,
         })
+        onClose()
+        resetForm()
+    }
+
+    const handleConfirmShipment = () => {
+        console.log("Confirmando envío del paquete")
+        onClose()
+        resetForm()
+    }
+
+    const handleCancelShipment = () => {
+        console.log("Cancelando envío del paquete")
         onClose()
         resetForm()
     }
@@ -40,8 +83,12 @@ export default function UpdatePackage({ isOpen, onClose, packageData }) {
     }
 
     const getDestinationText = () => {
-        const isGoingToFinal = packageData.destination.includes("Cliente")
+        const isGoingToFinal =true
         return isGoingToFinal ? "destino final" : "depósito"
+    }
+
+    const handleArrivedClick = () => {
+        setModalState("sent-to")
     }
 
     return (
@@ -52,61 +99,57 @@ export default function UpdatePackage({ isOpen, onClose, packageData }) {
             footer={null}
             width={700}
         >
-            {/* Recorrido */}
-            <Card title="Recorrido Realizado" style={{ marginBottom: 16 }}>
-                {packageData.route.map((step, index) => (
-                    <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-                        {step.status === "completed" ? (
-                            <CheckCircleTwoTone twoToneColor="#52c41a" style={{ fontSize: 20, marginRight: 8 }} />
-                        ) : step.status === "current" ? (
-                            <ClockCircleOutlined style={{ fontSize: 20, color: "#1890ff", marginRight: 8 }} />
-                        ) : (
-                            <ClockCircleOutlined style={{ fontSize: 20, color: "#ccc", marginRight: 8 }} />
-                        )}
-                        <div style={{ flex: 1 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                <Text strong>{step.location}</Text>
-                                <Text type="secondary">{step.time}</Text>
-                            </div>
-                        </div>
-                        <Badge
-                            status={
-                                step.status === "completed"
-                                    ? "success"
-                                    : step.status === "current"
-                                        ? "processing"
-                                        : "default"
-                            }
-                            text={
-                                step.status === "completed"
-                                    ? "Completado"
-                                    : step.status === "current"
-                                        ? "Actual"
-                                        : "Pendiente"
-                            }
-                        />
-                    </div>
-                ))}
-            </Card>
-
             {/* Estado send-to */}
             {modalState === "send-to" && (
                 <>
-                    <Card title="Hacia donde va ahora" style={{ marginBottom: 16 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <EnvironmentOutlined style={{ fontSize: 18, color: "#1890ff" }} />
-                            <Text strong>Enviando a: {getDestinationText()}</Text>
+                    <Card style={{ marginBottom: 16 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            {/* Contenedor de textos a la izquierda */}
+                            <div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <EnvironmentOutlined style={{ fontSize: 18, color: "#1890ff" }} />
+                                    <Text strong>Enviando a: {packageData.destination?.street}, {packageData.destination?.city}</Text>
+                                </div>
+                                <Text type="secondary">Destino: {packageData.destination?.street}, {packageData.destination?.city}</Text>
+                            </div>
+
+                            {/* Dropdown a la derecha */}
+                            <Select
+                                style={{ width: 120 }}
+                                placeholder="Estado"
+                                value={shipmentStatus || undefined}
+                                onChange={setShipmentStatus}
+                            >
+                                <Select.Option value="pending">Pendiente</Select.Option>
+                                <Select.Option value="received">Recibido</Select.Option>
+                            </Select>
                         </div>
-                        <Text type="secondary">Destino: {packageData.destination}</Text>
                     </Card>
 
                     <div style={{ textAlign: "right" }}>
-                        <Button type="primary" onClick={handleArrivedClick}>
-                            Marcar como Llegado
+                        <Button style={{ marginRight: 8 }} onClick={handleCancelShipment}>
+                            Cancelar Envío
+                        </Button>
+                        <Button
+                            type="primary"
+                            onClick={() => {
+                                if (shipmentStatus === "received") {
+                                    console.log("Paquete marcado como recibido");
+                                    handleConfirmShipment();
+                                } else {
+                                    console.log("Paquete sigue pendiente");
+                                    handleConfirmShipment();
+                                }
+                            }}
+                            disabled={!shipmentStatus} // deshabilitado hasta seleccionar
+                        >
+                            Confirmar Envío
                         </Button>
                     </div>
                 </>
             )}
+
+
 
             {/* Estado arrived-at */}
             {modalState === "arrived-at" && (

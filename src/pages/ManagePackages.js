@@ -5,19 +5,37 @@ import UpdatePackage from "./UpdatePackage";
 
 const { Search } = Input;
 
+const packageStates = Object.freeze({
+    created: "CREATED",
+    onHold: "ON_HOLD",
+    inTransit: "IN_TRANSIT",
+    delivered: "DELIVERED",
+    cancelled: "CANCELLED",
+});
 
 // Mock data for testing
 const MOCK_PACKAGES = [
     {
         id: "1",
-        origin: { street: "Main St", city: "New York" },
-        destination: { street: "2nd Ave", city: "Boston" },
-        state: "in-transit",
-        size: "Medium",
-        weight: "2kg",
-        track: [
-            { date: "2025-09-05", location: "New York", status: "Picked up" },
-            { date: "2025-09-06", location: "Philadelphia", status: "In transit" },
+        code: "PKG0001",
+        origin: { street: "Main St", city: "New York" }, // /addresses/{id}/destination
+        destination: { street: "2nd Ave", city: "Boston" }, // /addresses/{id}/destination
+        sender: { id: "1", username: "Alice" }, // /user/{id}
+        receiver: "4",  // /receivers/{id}
+        state: packageStates.inTransit,
+        tracks: [   // /package/{id}/tracks
+            {
+                id: "track-uuid-1",
+                package_id: "package-uuid-1",
+                comment: "Arrived at New York depot",
+                timestamp: "2025-09-05T10:00:00Z",
+                action: "ARRIVED_DEPOT",
+                depot: {
+                    id: "depot-1",
+                    name: "New York Depot",
+                },
+            }
+
         ],
     }
 ];
@@ -163,7 +181,11 @@ export default function ManagePackages() {
                 width={600}
             >
                 {selectedPackage && (
-                    <UpdatePackage/>
+                    <UpdatePackage
+                        isOpen={isUpdateModalVisible}
+                        onClose={() => setUpdateModalVisible(false)}
+                        packageData={selectedPackage}
+                    />
                 )}
             </Modal>
         </div>
