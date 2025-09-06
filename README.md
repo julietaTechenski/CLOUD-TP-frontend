@@ -20,14 +20,18 @@ Make sure you have the following tools installed:
 ```bash
 npm install
 ```
+2. Install serve:
 
-2. Build the application:
+```bash
+npm install -g serve
+```
+3. Build the application:
 
 ```bash
 npm run build
 ```
 
-3. Serve the application locally:
+4. Serve the application locally:
 
 ```bash
 serve -s build
