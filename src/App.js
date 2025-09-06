@@ -2,11 +2,12 @@ import {Routes, Route, BrowserRouter} from "react-router-dom";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Test from "./pages/Test";
-import CreatePackage from "./pages/CreatePackage";
+import RegisterPackage from "./pages/RegisterPackage";
 import UpdatePackage from "./pages/UpdatePackage";
 import Auth from "./pages/Auth";
 import TrackPackage from "./pages/TrackPackage";
 import AppLayout from "./components/AppLayout";
+import ManagePackages from "./pages/ManagePackages";
 
 function App() {
     return (
@@ -16,8 +17,7 @@ function App() {
                     <Route index element={<Home />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="test" element={<Test />} />
-                    <Route path="package/create" element={<CreatePackage />} />
-                    <Route path="package/update" element={<UpdatePackage />} />
+                    <Route path="packages" element={<ManagePackages />} />
                     <Route path="track" element={<TrackPackage />} />
                     <Route path="auth" element={<Auth />} />
                 </Route>

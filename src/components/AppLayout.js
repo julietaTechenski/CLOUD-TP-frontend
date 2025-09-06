@@ -10,8 +10,7 @@ const ROUTES = {
     HOME: "/",
     PROFILE: "/profile",
     TEST: "/test",
-    PACKAGE_CREATE: "/package/create",
-    PACKAGE_UPDATE: "/package/update",
+    PACKAGES: "/packages",
     TRACK: "/track",
     AUTH: "/auth",
 };
@@ -30,7 +29,7 @@ export default function AppLayout() {
                 }}
             >
                 <div style={{ color: "white", fontSize: "1.5rem", fontWeight: "bold" }}>
-                    My App
+                    FastTrack Delivery
                 </div>
                 <Menu
                     theme="dark"
@@ -43,6 +42,9 @@ export default function AppLayout() {
                     </Menu.Item>
                     <Menu.Item key={ROUTES.PROFILE} onClick={() => navigate(ROUTES.PROFILE)}>
                         Profile
+                    </Menu.Item>
+                    <Menu.Item key={ROUTES.PACKAGES} onClick={() => navigate(ROUTES.PACKAGES)}>
+                        Manage Package
                     </Menu.Item>
                     <Menu.Item key={ROUTES.TEST} onClick={() => navigate(ROUTES.TEST)}>
                         Test
