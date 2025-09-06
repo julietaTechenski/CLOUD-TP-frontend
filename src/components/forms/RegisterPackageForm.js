@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Input, Button, Card, Row, Col, Divider } from "antd";
-import { HomeOutlined, FlagOutlined } from "@ant-design/icons";
+import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined} from "@ant-design/icons";
 
 export function RegisterPackageForm({ onSubmit }) {
     const [form] = Form.useForm();
@@ -31,6 +31,33 @@ export function RegisterPackageForm({ onSubmit }) {
             onFinish={handleFinish}
             style={{ maxWidth: 700, margin: "0 auto" }}
         >
+            {/* Package Details */}
+            <Card
+                title={<span style={{ color: "#faad14" }}><BoxPlotOutlined /> Package Details</span>}
+                style={{ marginBottom: 16, borderLeft: "5px solid #faad14" }}
+            >
+                <Row gutter={16}>
+                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                        <Form.Item
+                            label="Size (LxWxH)"
+                            name="size"
+                            rules={[{ required: true, message: "Please enter the package size" }]}
+                        >
+                            <Input placeholder="e.g. 30x20x15 cm" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                        <Form.Item
+                            label="Weight"
+                            name="weight"
+                            rules={[{ required: true, message: "Please enter the package weight" }]}
+                        >
+                            <Input placeholder="e.g. 2.5 kg" />
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Card>
+
             {/* Origin */}
             <Card
                 title={<span style={{ color: "#1890ff" }}><HomeOutlined /> Origin</span>}
@@ -38,6 +65,36 @@ export function RegisterPackageForm({ onSubmit }) {
             >
                 <Row gutter={16}>
                     {renderAddressFields("origin")}
+                </Row>
+            </Card>
+
+            {/* Sender */}
+            <Card
+                title={<span style={{ color: "#fa8c16" }}><UserOutlined /> Sender</span>}
+                style={{ marginBottom: 16, borderLeft: "5px solid #fa8c16" }}
+            >
+                <Row gutter={16}>
+                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                        <Form.Item
+                            label="Name"
+                            name="sender"
+                            rules={[{ required: true, message: "Please enter the sender's name" }]}
+                        >
+                            <Input placeholder="Sender name" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                        <Form.Item
+                            label="Email"
+                            name="senderEmail"
+                            rules={[
+                                { required: true, message: "Please enter sender email" },
+                                { type: "email", message: "Please enter a valid email" }
+                            ]}
+                        >
+                            <Input placeholder="Sender email" prefix={<MailOutlined />} />
+                        </Form.Item>
+                    </Col>
                 </Row>
             </Card>
 
@@ -51,50 +108,36 @@ export function RegisterPackageForm({ onSubmit }) {
                 </Row>
             </Card>
 
-            <Divider>Package Details</Divider>
 
-            {/* Package features */}
-            <Row gutter={16}>
-                <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
-                    <Form.Item
-                        label="Size (LxWxH)"
-                        name="size"
-                        rules={[{ required: true, message: "Please enter the package size" }]}
-                    >
-                        <Input placeholder="e.g. 30x20x15 cm" />
-                    </Form.Item>
-                </Col>
-                <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
-                    <Form.Item
-                        label="Weight"
-                        name="weight"
-                        rules={[{ required: true, message: "Please enter the package weight" }]}
-                    >
-                        <Input placeholder="e.g. 2.5 kg" />
-                    </Form.Item>
-                </Col>
-            </Row>
-
-            <Row gutter={16}>
-                <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
-                    <Form.Item
-                        label="Sender"
-                        name="sender"
-                        rules={[{ required: true, message: "Please enter the sender's name" }]}
-                    >
-                        <Input placeholder="Sender name" />
-                    </Form.Item>
-                </Col>
-                <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
-                    <Form.Item
-                        label="Receiver"
-                        name="receiver"
-                        rules={[{ required: true, message: "Please enter the receiver's name" }]}
-                    >
-                        <Input placeholder="Receiver name" />
-                    </Form.Item>
-                </Col>
-            </Row>
+            {/* Receiver */}
+            <Card
+                title={<span style={{ color: "#722ed1" }}><UserOutlined /> Receiver</span>}
+                style={{ marginBottom: 16, borderLeft: "5px solid #722ed1" }}
+            >
+                <Row gutter={16}>
+                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                        <Form.Item
+                            label="Name"
+                            name="receiver"
+                            rules={[{ required: true, message: "Please enter the receiver's name" }]}
+                        >
+                            <Input placeholder="Receiver name" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                        <Form.Item
+                            label="Email"
+                            name="receiverEmail"
+                            rules={[
+                                { required: true, message: "Please enter receiver email" },
+                                { type: "email", message: "Please enter a valid email" }
+                            ]}
+                        >
+                            <Input placeholder="Receiver email" prefix={<MailOutlined />} />
+                        </Form.Item>
+                    </Col>
+                </Row>
+            </Card>
 
             <Form.Item>
                 <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
