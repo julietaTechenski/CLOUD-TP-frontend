@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useContext} from "react";
 import { Button, Card, Modal, List, Select, Input, message } from "antd";
 import { RegisterPackageForm } from "../components/forms/RegisterPackageForm";
 import UpdatePackage from "./UpdatePackage";
 
-const { Option } = Select;
 const { Search } = Input;
+
 
 // Mock data for testing
 const MOCK_PACKAGES = [
@@ -23,12 +23,15 @@ const MOCK_PACKAGES = [
 ];
 
 export default function ManagePackages() {
+    // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
+    // roles -> admin | user
+    const  role  = "user"
+
     const [packages, setPackages] = useState(MOCK_PACKAGES);
     const [filteredPackages, setFilteredPackages] = useState(MOCK_PACKAGES);
     const [isRegisterModalVisible, setRegisterModalVisible] = useState(false);
-    const [isUpdateModalVisible, setUpdateModalVisible] = useState(false);
+    const [ setUpdateModalVisible] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState(null);
-    const [newStatus, setNewStatus] = useState("");
     const [filterText, setFilterText] = useState("");
 
     // Filter packages based on input
@@ -54,21 +57,9 @@ export default function ManagePackages() {
         message.success(`Package ${pkg.id} registered!`);
     };
 
-    const handleUpdateStatus = () => {
-        if (!newStatus) {
-            message.error("Please select a new status");
-            return;
-        }
-        selectedPackage.state = newStatus;
-        setPackages([...packages]); // force re-render
-        message.success(`Package ${selectedPackage.id} status updated to ${newStatus}`);
-        setSelectedPackage(null);
-        setNewStatus("");
-        setUpdateModalVisible(false);
-    };
-
     return (
         <div style={{ padding: "2rem" }}>
+            {role === "user" && (
             <Card
                 title="Packages Management"
                 style={{ maxWidth: 800, margin: "0 auto 2rem auto" }}
@@ -81,8 +72,10 @@ export default function ManagePackages() {
                     Register Package
                 </Button>
             </Card>
+            )}
 
             {/* Filter input */}
+            {role === "admin" && (
             <Card
                 title="Filter Packages"
                 style={{ maxWidth: 800, margin: "0 auto 1rem auto" }}
@@ -94,9 +87,10 @@ export default function ManagePackages() {
                     allowClear
                 />
             </Card>
+            )}
 
             {/* Packages list */}
-            {filteredPackages.length > 0 && (
+            {role ==="admin" && filteredPackages && filteredPackages.length > 0 && (
                 <Card title="Registered Packages" style={{ maxWidth: 800, margin: "0 auto" }}>
                     <List
                         dataSource={filteredPackages}

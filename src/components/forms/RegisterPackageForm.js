@@ -1,12 +1,20 @@
-import React from "react";
+import React, {useContext} from "react";
 import { Form, Input, Button, Card, Row, Col } from "antd";
 import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined} from "@ant-design/icons";
 
 export function RegisterPackageForm({ onSubmit }) {
     const [form] = Form.useForm();
+    // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { userId } = useContext(AuthContext);
+    const { userId } = "1";
+
 
     const handleFinish = (values) => {
-        onSubmit(values, form.resetFields);
+        const packageData = {
+            ...values,
+            sender: userId,
+            status: "CREATED",
+        };
+        onSubmit(packageData, form.resetFields);
     };
 
     const addressFields = ["Street", "Number", "Apartment (optional)", "City", "Province", "Zip Code"];
@@ -17,12 +25,13 @@ export function RegisterPackageForm({ onSubmit }) {
                 <Form.Item
                     label={field.charAt(0).toUpperCase() + field.slice(1)}
                     name={[prefix, field]}
-                    rules={field === "apartment" ? [] : [{ required: true, message: `Please enter ${prefix} ${field}` }]}
+                    rules={field === "Apartment (optional)" ? [] : [{ required: true, message: `Please enter ${prefix} ${field}` }]}
                 >
                     <Input placeholder={field} size="middle" />
                 </Form.Item>
             </Col>
         ));
+
 
     return (
         <Form
@@ -53,6 +62,16 @@ export function RegisterPackageForm({ onSubmit }) {
                             rules={[{ required: true, message: "Please enter the package weight" }]}
                         >
                             <Input placeholder="e.g. 2.5 kg" />
+                        </Form.Item>
+                    </Col>
+                </Row>
+                <Row gutter={16}>
+                    <Col span={24} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                        <Form.Item
+                            label="Comments"
+                            name="comments"
+                        >
+                            <Input.TextArea placeholder="Add any additional notes or comments here..." rows={4} />
                         </Form.Item>
                     </Col>
                 </Row>
