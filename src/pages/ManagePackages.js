@@ -1,5 +1,5 @@
-import React, {useState, useEffect, useContext} from "react";
-import { Button, Card, Modal, List, Select, Input, message } from "antd";
+import React, {useState, useEffect} from "react";
+import { Button, Card, Modal, List, Input, message } from "antd";
 import { RegisterPackageForm } from "../components/forms/RegisterPackageForm";
 import UpdatePackage from "./UpdatePackage";
 
@@ -25,12 +25,12 @@ const MOCK_PACKAGES = [
 export default function ManagePackages() {
     // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
     // roles -> admin | user
-    const  role  = "user"
+    const  role  = "admin"
 
     const [packages, setPackages] = useState(MOCK_PACKAGES);
     const [filteredPackages, setFilteredPackages] = useState(MOCK_PACKAGES);
     const [isRegisterModalVisible, setRegisterModalVisible] = useState(false);
-    const [ setUpdateModalVisible] = useState(false);
+    const [isUpdateModalVisible, setUpdateModalVisible] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
 
