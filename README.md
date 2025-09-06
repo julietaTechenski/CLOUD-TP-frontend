@@ -15,13 +15,23 @@ Make sure you have the following tools installed:
 
 ## Running the application locally
 
-1. Build the application:
+1. Install dependencies:
+
+```bash
+npm install
+```
+2. Install serve:
+
+```bash
+npm install -g serve
+```
+3. Build the application:
 
 ```bash
 npm run build
 ```
 
-2. Serve the application locally:
+4. Serve the application locally:
 
 ```bash
 serve -s build
