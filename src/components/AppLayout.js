@@ -1,8 +1,9 @@
 // Layout.tsx
-import React from "react";
+import React, {useState} from "react";
 import { Layout, Menu, Button } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import "antd/dist/reset.css";
+import UserProfileDrawer from "./UserProfileDrawer";
 
 const { Header, Content } = Layout;
 
@@ -15,9 +16,17 @@ const ROUTES = {
     AUTH: "/auth",
 };
 
+const MOCK_USER = {
+    name: "Valentina Marti",
+    role: "Admin",
+    email: "valentina@example.com",
+};
+
 export default function AppLayout() {
     const navigate = useNavigate();
     const location = useLocation();
+
+    const [isProfileDrawerVisible, setProfileDrawerVisible] = useState(false);
 
     return (
         <Layout style={{ minHeight: "100vh" }}>
@@ -40,9 +49,6 @@ export default function AppLayout() {
                     <Menu.Item key={ROUTES.HOME} onClick={() => navigate(ROUTES.HOME)}>
                         Home
                     </Menu.Item>
-                    <Menu.Item key={ROUTES.PROFILE} onClick={() => navigate(ROUTES.PROFILE)}>
-                        Profile
-                    </Menu.Item>
                     <Menu.Item key={ROUTES.PACKAGES} onClick={() => navigate(ROUTES.PACKAGES)}>
                         Manage Package
                     </Menu.Item>
@@ -51,6 +57,9 @@ export default function AppLayout() {
                     </Menu.Item>
                     <Menu.Item key={ROUTES.TRACK} onClick={() => navigate(ROUTES.TRACK)}>
                         Track
+                    </Menu.Item>
+                    <Menu.Item key={ROUTES.PROFILE} onClick={() => setProfileDrawerVisible(true)}>
+                        Profile
                     </Menu.Item>
                     <Menu.Item key="auth">
                         <Button type="primary" onClick={() => navigate(ROUTES.AUTH)}>
@@ -63,6 +72,12 @@ export default function AppLayout() {
             <Content style={{ padding: "2rem" }}>
                 <Outlet />
             </Content>
+
+            <UserProfileDrawer
+                visible={isProfileDrawerVisible}
+                onClose={() => setProfileDrawerVisible(false)}
+                user={MOCK_USER}
+            />
         </Layout>
     );
 }
