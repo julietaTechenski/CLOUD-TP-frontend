@@ -45,28 +45,42 @@ export default function AppLayout() {
                     mode="horizontal"
                     selectedKeys={[location.pathname]}
                     style={{ display: "flex", flex: 1, justifyContent: "flex-end" }}
-                >
-                    <Menu.Item key={ROUTES.HOME} onClick={() => navigate(ROUTES.HOME)}>
-                        Home
-                    </Menu.Item>
-                    <Menu.Item key={ROUTES.PACKAGES} onClick={() => navigate(ROUTES.PACKAGES)}>
-                        Manage Package
-                    </Menu.Item>
-                    <Menu.Item key={ROUTES.TEST} onClick={() => navigate(ROUTES.TEST)}>
-                        Test
-                    </Menu.Item>
-                    <Menu.Item key={ROUTES.TRACK} onClick={() => navigate(ROUTES.TRACK)}>
-                        Track
-                    </Menu.Item>
-                    <Menu.Item key={ROUTES.PROFILE} onClick={() => setProfileDrawerVisible(true)}>
-                        Profile
-                    </Menu.Item>
-                    <Menu.Item key="auth">
-                        <Button type="primary" onClick={() => navigate(ROUTES.AUTH)}>
-                            Log In
-                        </Button>
-                    </Menu.Item>
-                </Menu>
+                    items={[
+                        {
+                            key: ROUTES.HOME,
+                            label: "Home",
+                            onClick: () => navigate(ROUTES.HOME),
+                        },
+                        {
+                            key: ROUTES.PACKAGES,
+                            label: "Manage Package",
+                            onClick: () => navigate(ROUTES.PACKAGES),
+                        },
+                        {
+                            key: ROUTES.TEST,
+                            label: "Test",
+                            onClick: () => navigate(ROUTES.TEST),
+                        },
+                        {
+                            key: ROUTES.TRACK,
+                            label: "Track",
+                            onClick: () => navigate(ROUTES.TRACK),
+                        },
+                        {
+                            key: ROUTES.PROFILE,
+                            label: "Profile",
+                            onClick: () => setProfileDrawerVisible(true),
+                        },
+                        {
+                            key: "auth",
+                            label: (
+                                <Button type="primary" onClick={() => navigate(ROUTES.AUTH)}>
+                                    Log In
+                                </Button>
+                            ),
+                        },
+                    ]}
+                />
             </Header>
 
             <Content style={{ padding: "2rem" }}>
