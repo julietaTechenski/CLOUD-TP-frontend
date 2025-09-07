@@ -2,68 +2,72 @@ import React, {useState, useEffect} from "react";
 import { Button, Card, Modal, List, Input, message } from "antd";
 import { RegisterPackageForm } from "../components/forms/RegisterPackageForm";
 import UpdatePackageModal from "./UpdatePackage";
+import {useAddresses} from "../hooks/services/useAddresses";
+import {usePackages} from "../hooks/services/usePackages";
+import api from "../lib/axios";
+import PackageListCard from "../components/PackageListCard";
+import {useTracks} from "../hooks/services/useTracks";
 
 const { Search } = Input;
-
-const packageStates = Object.freeze({
-    created: "CREATED",
-    onHold: "ON_HOLD",
-    inTransit: "IN_TRANSIT",
-    delivered: "DELIVERED",
-    cancelled: "CANCELLED",
-});
-
-// Mock data for testing
-const MOCK_PACKAGES = [
-    {
-        id: "1",
-        code: "PKG0001",
-        origin: { street: "Main St", city: "New York" }, // /addresses/{id}/destination
-        destination: { street: "2nd Ave", city: "Boston" }, // /addresses/{id}/destination
-        sender: { id: "1", username: "Alice" }, // /user/{id}
-        receiver: "4",  // /receivers/{id}
-        state: packageStates.inTransit,
-        tracks: [   // /package/{id}/tracks
-            {
-                id: "track-uuid-1",
-                package_id: "package-uuid-1",
-                comment: "Arrived at New York depot",
-                timestamp: "2025-09-05T10:00:00Z",
-                action: "ARRIVED_DEPOT",
-                depot: {
-                    id: "depot-1",
-                    name: "New York Depot",
-                },
-            },
-            // {
-            //     id: "track-uuid-1",
-            //     package_id: "package-uuid-1",
-            //     comment: "Arrived at New York depot",
-            //     timestamp: "2025-09-06T10:00:00Z",
-            //     action: "SEND_FINAL",
-            //     depot: {
-            //         id: "depot-1",
-            //         name: "New York Depot",
-            //     },
-            // }
-
-        ],
-    }
-];
 
 export default function ManagePackages() {
     // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
     // roles -> admin | user
-    const  role  = "admin"
+    const role = "admin";
 
-    const [packages, setPackages] = useState(MOCK_PACKAGES);
-    const [filteredPackages, setFilteredPackages] = useState(MOCK_PACKAGES);
+    const [packages, setPackages] = useState([]);
+    const [filteredPackages, setFilteredPackages] = useState([]);
     const [isRegisterModalVisible, setRegisterModalVisible] = useState(false);
-    const [isUpdateModalVisible, setUpdateModalVisible] = useState(false);
+    const [setUpdateModalVisible] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
 
-    // Filter packages based on input
+    const { getAddresses } = useAddresses();
+    const { getPackages } = usePackages();
+    const { getPackageTracks } = useTracks();
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const addressesRes = await getAddresses();
+                const packagesRes = await getPackages();
+
+                const addressesMap = {};
+                addressesRes.data.forEach((addr) => {
+                    addressesMap[addr.id] = addr;
+                });
+
+                let packagesWithAddresses = packagesRes.data.map((pkg) => ({
+                    ...pkg,
+                    origin: addressesMap[pkg.origin],
+                    destination: addressesMap[pkg.destination],
+                }));
+
+                packagesWithAddresses = await Promise.all(
+                    packagesWithAddresses.map(async (pkg) => {
+                        try {
+                            const tracksRes = await getPackageTracks(pkg.code);
+                            return {
+                                ...pkg,
+                                track: tracksRes.data || [],
+                            };
+                        } catch {
+                            return { ...pkg, track: [] };
+                        }
+                    })
+                );
+
+                setPackages(packagesWithAddresses);
+                setFilteredPackages(packagesWithAddresses);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+
     useEffect(() => {
         if (!filterText) {
             setFilteredPackages(packages);
@@ -74,8 +78,8 @@ export default function ManagePackages() {
             packages.filter(
                 (pkg) =>
                     pkg.id.toLowerCase().includes(lower) ||
-                    pkg.origin.city.toLowerCase().includes(lower) ||
-                    pkg.destination.city.toLowerCase().includes(lower) ||
+                    pkg.origin?.city.toLowerCase().includes(lower) ||
+                    pkg.destination?.city.toLowerCase().includes(lower) ||
                     (pkg.state && pkg.state.toLowerCase().includes(lower))
             )
         );
@@ -83,9 +87,9 @@ export default function ManagePackages() {
 
     const handleNewPackage = (pkg) => {
         setPackages((prev) => [...prev, pkg]);
+        setFilteredPackages((prev) => [...prev, pkg]);
         message.success(`Package ${pkg.id} registered!`);
     };
-
     return (
         <div style={{ padding: "2rem" }}>
             {role === "user" && (
@@ -119,51 +123,15 @@ export default function ManagePackages() {
             )}
 
             {/* Packages list */}
-            {role ==="admin" && filteredPackages && filteredPackages.length > 0 && (
-                <Card title="Registered Packages" style={{ maxWidth: 800, margin: "0 auto" }}>
-                    <List
-                        dataSource={filteredPackages}
-                        renderItem={(pkg) => (
-                            <List.Item
-                                style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                            >
-                                <div onClick={() => setSelectedPackage(pkg)} style={{ cursor: "pointer", flex: 1 }}>
-                                    <List.Item.Meta
-                                        title={`Package ID: ${pkg.id} | State: ${pkg.state || "pending"}`}
-                                        description={
-                                            <>
-                                                <p>
-                                                    Origin: {pkg.origin?.street}, {pkg.origin?.city} → Destination: {pkg.destination?.street}, {pkg.destination?.city}
-                                                </p>
-                                                {pkg.track && pkg.track.length > 0 && (
-                                                    <div style={{ marginTop: 8 }}>
-                                                        <strong>Tracking History:</strong>
-                                                        <ul>
-                                                            {pkg.track.map((t, i) => (
-                                                                <li key={i}>
-                                                                    {t.date} - {t.location} ({t.status})
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                            </>
-                                        }
-                                    />
-                                </div>
-                                <Button
-                                    type="primary"
-                                    onClick={() => {
-                                        setSelectedPackage(pkg);
-                                        setUpdateModalVisible(true);
-                                    }}
-                                >
-                                    Update
-                                </Button>
-                            </List.Item>
-                        )}
-                    />
-                </Card>
+            {role === "admin" && filteredPackages.length > 0 && (
+                <PackageListCard
+                    packages={filteredPackages}
+                    onSelectPackage={setSelectedPackage}
+                    onUpdatePackage={(pkg) => {
+                        setSelectedPackage(pkg);
+                        setUpdateModalVisible(true);
+                    }}
+                />
             )}
 
             {/* Register Modal */}
@@ -172,7 +140,7 @@ export default function ManagePackages() {
                 open={isRegisterModalVisible}
                 onCancel={() => setRegisterModalVisible(false)}
                 footer={null}
-                width={800} // make it wider
+                width={800}
             >
                 <RegisterPackageForm
                     onSubmit={(pkg, resetForm) => {
