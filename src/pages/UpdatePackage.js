@@ -1,10 +1,10 @@
 import {useEffect, useState} from "react"
 import {Modal, Button, Card, Select, Typography, Divider} from "antd"
 import {EnvironmentOutlined, CheckCircleTwoTone} from "@ant-design/icons"
+import DepotsService from "../services/package";
+import {getDepots} from "../services/depots";
 
 const {Text} = Typography
-
-
 
 
 const actions = Object.freeze({
@@ -38,12 +38,27 @@ export default function UpdatePackageModal({onClose, packageData}) {
     const [shipmentStatus, setShipmentStatus] = useState("");
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
-    const depots = [
-        {id: "depot-a", name: "Depot A - Norte"},
-        {id: "depot-b", name: "Depot B - Sur"},
-        {id: "depot-c", name: "Depot C - Este"},
-        {id: "depot-d", name: "Depot D - Oeste"},
-    ]
+
+    const [depots, setDepots] = useState([]);
+    const [depotsLoading, setDepotsLoading] = useState(true);
+
+    useEffect(() => {
+        let mounted = true;
+        const loadDepots = async () => {
+            setDepotsLoading(true);
+            try {
+                const data = await getDepots();
+                if (mounted) setDepots(Array.isArray(data) ? data : []);
+            } catch (err) {
+                console.error("Error cargando depots:", err);
+                if (mounted) setDepots([]);
+            } finally {
+                if (mounted) setDepotsLoading(false);
+            }
+        };
+        loadDepots();
+        return () => { mounted = false; };
+    }, []);
 
     const handleConfirm = () => {
         console.log("Confirming new destination:", {
@@ -57,7 +72,7 @@ export default function UpdatePackageModal({onClose, packageData}) {
     }
 
     const handleConfirmShipment = () => {
-        // TODO: update shipment status API call -> package has arrives
+        // TODO: update shipment status API call -> package has arrived
         console.log("Confirming shipment with status:", shipmentStatus)
         onClose()
         resetForm()
@@ -177,7 +192,7 @@ export default function UpdatePackageModal({onClose, packageData}) {
                 <Card title="Package has arrived at one of our warehouses" style={{marginBottom: 16}}>
                     <div style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 16}}>
                         <CheckCircleTwoTone twoToneColor="#52c41a" style={{fontSize: 20}}/>
-                        <Text strong>Arrived at: {lastLocation}</Text>
+                        Arrived at: {lastLocation.depot?.name || "One of our depotss"}
                     </div>
 
                     <div style={{marginBottom: 12}}>

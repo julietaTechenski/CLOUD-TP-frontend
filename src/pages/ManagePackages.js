@@ -35,17 +35,17 @@ const MOCK_PACKAGES = [
                     name: "New York Depot",
                 },
             },
-            {
-                id: "track-uuid-1",
-                package_id: "package-uuid-1",
-                comment: "Arrived at New York depot",
-                timestamp: "2025-09-06T10:00:00Z",
-                action: "SEND_FINAL",
-                depot: {
-                    id: "depot-1",
-                    name: "New York Depot",
-                },
-            }
+            // {
+            //     id: "track-uuid-1",
+            //     package_id: "package-uuid-1",
+            //     comment: "Arrived at New York depot",
+            //     timestamp: "2025-09-06T10:00:00Z",
+            //     action: "SEND_FINAL",
+            //     depot: {
+            //         id: "depot-1",
+            //         name: "New York Depot",
+            //     },
+            // }
 
         ],
     }
@@ -54,7 +54,7 @@ const MOCK_PACKAGES = [
 export default function ManagePackages() {
     // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
     // roles -> admin | user
-    const  role  = "user"
+    const  role  = "admin"
 
     const [packages, setPackages] = useState(MOCK_PACKAGES);
     const [filteredPackages, setFilteredPackages] = useState(MOCK_PACKAGES);
