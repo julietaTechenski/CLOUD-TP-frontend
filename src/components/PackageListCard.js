@@ -25,11 +25,11 @@ export default function PackageListCard({
                                         <p>
                                             Origin: {pkg.origin?.street} {pkg.origin?.number}, {pkg.origin?.city} → Destination: {pkg.destination?.street} {pkg.origin?.number}, {pkg.destination?.city}
                                         </p>
-                                        {pkg.track && pkg.track.length > 0 && (
+                                        {(pkg.track || []).length > 0 && (
                                             <div style={{ marginTop: 8 }}>
                                                 <strong>Tracking History:</strong>
                                                 <ul>
-                                                    {pkg.track.map((t, i) => (
+                                                    {(pkg.track || []).map((t, i) => (
                                                         <li key={i}>
                                                             {t.date} - {t.location} ({t.status})
                                                         </li>

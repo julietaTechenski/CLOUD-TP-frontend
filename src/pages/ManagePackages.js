@@ -6,6 +6,7 @@ import {useAddresses} from "../hooks/services/useAddresses";
 import {usePackages} from "../hooks/services/usePackages";
 import api from "../lib/axios";
 import PackageListCard from "../components/PackageListCard";
+import {useTracks} from "../hooks/services/useTracks";
 
 const { Search } = Input;
 
@@ -21,8 +22,9 @@ export default function ManagePackages() {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
 
-    const { getAddresses } = useAddresses(api);
-    const { getPackages } = usePackages(api);
+    const { getAddresses } = useAddresses();
+    const { getPackages } = usePackages();
+    const { getPackageTracks } = useTracks();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -35,14 +37,25 @@ export default function ManagePackages() {
                     addressesMap[addr.id] = addr;
                 });
 
-                const packagesWithAddresses = packagesRes.data.map((pkg) => ({
+                let packagesWithAddresses = packagesRes.data.map((pkg) => ({
                     ...pkg,
                     origin: addressesMap[pkg.origin],
                     destination: addressesMap[pkg.destination],
                 }));
 
-                console.log("Addresses:", addressesRes.data);
-                console.log("Packages:", packagesWithAddresses);
+                packagesWithAddresses = await Promise.all(
+                    packagesWithAddresses.map(async (pkg) => {
+                        try {
+                            const tracksRes = await getPackageTracks(pkg.code);
+                            return {
+                                ...pkg,
+                                track: tracksRes.data || [],
+                            };
+                        } catch {
+                            return { ...pkg, track: [] };
+                        }
+                    })
+                );
 
                 setPackages(packagesWithAddresses);
                 setFilteredPackages(packagesWithAddresses);
