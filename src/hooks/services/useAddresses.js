@@ -1,7 +1,8 @@
 import api from "../../lib/axios";
+import {useCallback} from "react";
 
-export const useAddresses = () => ({
-    createAddress: (data) => {
+export const useAddresses = () => {
+    const createAddress = useCallback((data) => {
         const requiredFields = ["street", "city", "province", "zip_code"];
         for (const field of requiredFields) {
             if (!data[field]) {
@@ -10,6 +11,11 @@ export const useAddresses = () => ({
         }
 
         return api.post("/addresses/", data);
-    },
-    getAddresses: () => api.get("/addresses/"),
-});
+    }, []);
+
+    const getAddresses = useCallback(() => api.get("/addresses/"), []);
+
+    const getAddress = useCallback((id) => api.get(`/addresses/${id}/`), []);
+
+    return { createAddress, getAddresses, getAddress };
+}

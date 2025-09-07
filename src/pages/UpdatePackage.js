@@ -1,37 +1,57 @@
 import {useEffect, useState} from "react"
 import {Modal, Button, Card, Select, Typography, Divider} from "antd"
 import {EnvironmentOutlined, CheckCircleTwoTone} from "@ant-design/icons"
-import DepotsService from "../services/package";
-import {getDepots} from "../services/depots";
+import {useTracks} from "../hooks/services/useTracks";
+import {useDepots} from "../hooks/services/useDepots";
+import {useAddresses} from "../hooks/services/useAddresses";
 
 const {Text} = Typography
 
 
 const actions = Object.freeze({
-    sentToDepot: "SEND_DEPOT",
-    arrivedDepot: "ARRIVED_DEPOT",
-    sentToFinal: "SEND_FINAL",
-    arrivedFinal: "ARRIVED_FINAL",
-    cancelled: "CANCELLED",
+    create: "CREATE", // arrived-at
+    sentToDepot: "SEND_DEPOT", // send-to
+    arrivedDepot: "ARRIVED_DEPOT", // arrived-at
+    sentToFinal: "SEND_FINAL", // send-to
+    arrivedFinal: "ARRIVED_FINAL", // update botton should not be shown
+    cancelled: "CANCEL", // update botton should not be shown
 });
 
-// /depots
-// /depots/{id}
 export default function UpdatePackageModal({onClose, packageData}) {
     const [modalState, setModalState] = useState("send-to");
     const [lastLocation, setLastLocation] = useState([]);
 
+
+    const { getLatestPackageTrack } = useTracks();
+    const { getDepots } = useDepots();
+    const { getAddress } = useAddresses();
+
+    const { postPackageTrack } = useTracks();
+
     useEffect(() => {
-        if (packageData?.tracks?.length) {
-            setModalState(
-                packageData.tracks[packageData.tracks.length - 1].action === actions.arrivedDepot
-                    ? "arrived-at"
-                    : "send-to"
-            );
-            setIsCancelModalOpen(false);
-            setLastLocation(packageData.tracks[packageData.tracks.length - 1]);
-        }
-    }, [packageData]);
+        const fetchData = async () => {
+            try {
+                const warehouses = await getDepots();
+                const lastTrack = await getLatestPackageTrack(packageData.code);
+                const destination = await getAddress(packageData.destination);
+
+                console.log(warehouses.data)
+                setModalState(
+                    lastTrack.data.action === actions.arrivedDepot || lastTrack.data.action === actions.create
+                        ? "arrived-at"
+                        : "send-to"
+                );
+
+                setLastLocation(lastTrack.data);
+                setDepots(warehouses.data);
+                packageData.destination = destination;
+
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchData();
+    }, [getAddress, getDepots, getLatestPackageTrack, packageData, packageData.code]);
 
     const [destinationType, setDestinationType] = useState("")
     const [selectedDepot, setSelectedDepot] = useState("")
@@ -40,25 +60,6 @@ export default function UpdatePackageModal({onClose, packageData}) {
 
 
     const [depots, setDepots] = useState([]);
-    const [depotsLoading, setDepotsLoading] = useState(true);
-
-    useEffect(() => {
-        let mounted = true;
-        const loadDepots = async () => {
-            setDepotsLoading(true);
-            try {
-                const data = await getDepots();
-                if (mounted) setDepots(Array.isArray(data) ? data : []);
-            } catch (err) {
-                console.error("Error cargando depots:", err);
-                if (mounted) setDepots([]);
-            } finally {
-                if (mounted) setDepotsLoading(false);
-            }
-        };
-        loadDepots();
-        return () => { mounted = false; };
-    }, []);
 
     const handleConfirm = () => {
         console.log("Confirming new destination:", {
@@ -66,20 +67,32 @@ export default function UpdatePackageModal({onClose, packageData}) {
             destinationType,
             selectedDepot,
         })
-        // TODO: update package destination API call -> package needs to be sent to...
+        postPackageTrack(packageData.code, {
+            action: destinationType === "depot" ?  actions.sentToDepot : actions.sentToFinal,
+            comment: "Package sent to " + (destinationType === "depot" ? "depot " + selectedDepot : "final destination"),
+        })
         onClose()
         resetForm()
     }
 
     const handleConfirmShipment = () => {
-        // TODO: update shipment status API call -> package has arrived
-        console.log("Confirming shipment with status:", shipmentStatus)
+
+        postPackageTrack(packageData.code, {
+            action: lastLocation.action === actions.sentToFinal ? actions.arrivedFinal : actions.arrivedDepot,
+            depot: lastLocation.action === actions.sentToFinal ? null : lastLocation.id,
+            comment: "Package has arrived at " + (lastLocation.action === actions.sentToFinal ? "final destination" : "depot " + lastLocation.name),
+        })
+        console.log("Confirming shipment")
         onClose()
         resetForm()
     }
 
     const handleCancelShipment = () => {
-        // TODO: cancel shipment API call -> package shipment cancelled
+        postPackageTrack(packageData.code, {
+            action: actions.cancelled,
+            depot:  null,
+            comment: "Shipment cancelled, package is being returned to sender.",
+        })
         console.log("Cancelling shipment")
         onClose()
         resetForm()
@@ -91,7 +104,7 @@ export default function UpdatePackageModal({onClose, packageData}) {
     }
 
     const resetForm = () => {
-        setModalState(packageData.tracks[packageData.tracks.length - 1].action === actions.arrivedDepot
+        setModalState(lastLocation.action === actions.arrivedDepot
             ? "arrived-at"
             : "send-to")
         setDestinationType("")
@@ -113,7 +126,7 @@ export default function UpdatePackageModal({onClose, packageData}) {
                         <div>
                             <div style={{display: "flex", alignItems: "center", gap: 8}}>
                                 <EnvironmentOutlined style={{fontSize: 18, color: "#1890ff"}}/>
-                                <Text strong>Package on the way to: {packageData.destination?.street}, {packageData.destination?.city}</Text>
+                                <Text strong>Package on the way to: {lastLocation.depot}</Text>
                             </div>
                             <Text
                                 type="secondary">Final destination: {packageData.destination?.street}, {packageData.destination?.city}</Text>
@@ -147,10 +160,6 @@ export default function UpdatePackageModal({onClose, packageData}) {
                         type="primary"
                         onClick={() => {
                             if (shipmentStatus === "received") {
-                                console.log("Package received at destination");
-                                handleConfirmShipment();
-                            } else {
-                                console.log("Package is still pending");
                                 handleConfirmShipment();
                             }
                         }}
@@ -163,7 +172,6 @@ export default function UpdatePackageModal({onClose, packageData}) {
                 <Divider />
                 <Card style={{marginBottom: 16, border: '1px solid #ff4d4f'}}>
                     <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-                        {/* Contenedor de textos a la izquierda */}
                         <div style={{paddingRight: 16}}>
                             <div style={{display: "flex", alignItems: "center", gap: 8}}>
                                 <Text>Cancel package delivery</Text>
@@ -192,7 +200,7 @@ export default function UpdatePackageModal({onClose, packageData}) {
                 <Card title="Package has arrived at one of our warehouses" style={{marginBottom: 16}}>
                     <div style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 16}}>
                         <CheckCircleTwoTone twoToneColor="#52c41a" style={{fontSize: 20}}/>
-                        Arrived at: {lastLocation.depot?.name || "One of our depotss"}
+                        Arrived at: {lastLocation.name || "One of our depots"}
                     </div>
 
                     <div style={{marginBottom: 12}}>
@@ -239,6 +247,28 @@ export default function UpdatePackageModal({onClose, packageData}) {
                         Confirm destination
                     </Button>
                 </div>
+
+                <Divider />
+                <Card style={{marginBottom: 16, border: '1px solid #ff4d4f'}}>
+                    <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                        <div style={{paddingRight: 16}}>
+                            <div style={{display: "flex", alignItems: "center", gap: 8}}>
+                                <Text>Cancel package delivery</Text>
+                            </div>
+                            <Text
+                                type="secondary">When pressing this botton you're cancelling the delivery of the package. It will be sent back to the origin location.</Text>
+                        </div>
+                        <Button
+                            type="primary"
+                            danger
+                            style={{ marginRight: 8 }}
+                            onClick={() => setIsCancelModalOpen(true)}
+                        >
+                            Cancel delivery
+                        </Button>
+
+                    </div>
+                </Card>
             </>
         )}
             {/* Modal de confirmación de cancelación */}

@@ -1,4 +1,4 @@
-import React, { createContext } from "react";
+import { createContext } from "react";
 
 export const ACCESS_TOKEN_HEADER_NAME = "access-token";
 export const REFRESH_TOKEN_HEADER_NAME = "refresh-token";

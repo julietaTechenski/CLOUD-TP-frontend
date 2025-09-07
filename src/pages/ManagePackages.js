@@ -1,10 +1,9 @@
 import React, {useState, useEffect} from "react";
-import { Button, Card, Modal, List, Input, message } from "antd";
+import { Button, Card, Modal, Input, message } from "antd";
 import { RegisterPackageForm } from "../components/forms/RegisterPackageForm";
 import UpdatePackageModal from "./UpdatePackage";
 import {useAddresses} from "../hooks/services/useAddresses";
 import {usePackages} from "../hooks/services/usePackages";
-import api from "../lib/axios";
 import PackageListCard from "../components/PackageListCard";
 import {useTracks} from "../hooks/services/useTracks";
 
@@ -18,7 +17,7 @@ export default function ManagePackages() {
     const [packages, setPackages] = useState([]);
     const [filteredPackages, setFilteredPackages] = useState([]);
     const [isRegisterModalVisible, setRegisterModalVisible] = useState(false);
-    const [setUpdateModalVisible] = useState(false);
+    const [updateModalVisible, setUpdateModalVisible] = useState(false)
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
 
@@ -159,7 +158,7 @@ export default function ManagePackages() {
                 footer={null}
                 width={600}
             >
-                {selectedPackage && (
+                {selectedPackage !== null && (
                     <UpdatePackageModal
                         onClose={() => {
                             setUpdateModalVisible(false);

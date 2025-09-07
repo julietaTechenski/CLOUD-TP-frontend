@@ -41,12 +41,15 @@ export default function PackageListCard({
                                 }
                             />
                         </div>
-                        <Button
-                            type="primary"
-                            onClick={() => onUpdatePackage(pkg)}
-                        >
-                            Update
-                        </Button>
+
+                        {!(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
+                            <Button
+                                type="primary"
+                                onClick={() => onUpdatePackage(pkg)}
+                            >
+                                Update
+                            </Button>
+                        )}
                     </List.Item>
                 )}
             />
