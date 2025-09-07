@@ -7,7 +7,7 @@ const API_BASE_URL = "http://localhost:8001/api"
 
 const formatDate = (dateString) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString("es-ES", {
+    return date.toLocaleDateString("en-US", {
         day: "2-digit",
         month: "short",
         year: "numeric",
@@ -16,7 +16,7 @@ const formatDate = (dateString) => {
 
 const formatTime = (dateString) => {
     const date = new Date(dateString)
-    return date.toLocaleTimeString("es-ES", {
+    return date.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
     })
@@ -25,33 +25,33 @@ const formatTime = (dateString) => {
 const getActionDetails = (action) => {
     const actionMap = {
         CREATE: {
-            title: "Paquete creado",
-            description: "El paquete ha sido registrado en el sistema",
+            title: "Package Created",
+            description: "The package has been registered in the system",
             icon: "📦",
         },
         SEND_DEPOT: {
-            title: "Enviado a depósito",
-            description: "El paquete está en camino al centro de distribución",
+            title: "Sent to Depot",
+            description: "The package is on its way to the distribution center",
             icon: "🚛",
         },
         ARRIVED_DEPOT: {
-            title: "Llegó al depósito",
-            description: "El paquete ha llegado al centro de distribución",
+            title: "Arrived at Depot",
+            description: "The package has arrived at the distribution center",
             icon: "📍",
         },
         SEND_FINAL: {
-            title: "En camino al destino",
-            description: "El paquete está siendo enviado al destino final",
+            title: "On the Way to Destination",
+            description: "The package is being sent to its final destination",
             icon: "🚛",
         },
         ARRIVED_FINAL: {
-            title: "Entregado",
-            description: "El paquete ha sido entregado exitosamente",
+            title: "Delivered",
+            description: "The package has been successfully delivered",
             icon: "✅",
         },
         CANCELLED: {
-            title: "Cancelado",
-            description: "El envío ha sido cancelado",
+            title: "Cancelled",
+            description: "The shipment has been cancelled",
             icon: "❌",
         },
     }
@@ -59,7 +59,7 @@ const getActionDetails = (action) => {
     return (
         actionMap[action] || {
             title: action,
-            description: "Actualización del estado del paquete",
+            description: "Package status update",
             icon: "📦",
         }
     )
@@ -67,11 +67,11 @@ const getActionDetails = (action) => {
 
 const mapPackageState = (state) => {
     const stateMap = {
-        CREATED: "Creado",
-        IN_TRANSIT: "En tránsito",
-        ON_HOLD: "En depósito",
-        DELIVERED: "Entregado",
-        CANCELLED: "Cancelado",
+        CREATED: "Created",
+        IN_TRANSIT: "In Transit",
+        ON_HOLD: "On Hold",
+        DELIVERED: "Delivered",
+        CANCELLED: "Cancelled",
     }
     return stateMap[state] || state
 }
@@ -84,7 +84,7 @@ export default function TrackPackage() {
 
     const handleSearch = async () => {
         if (!trackingNumber.trim()) {
-            setError("Por favor ingresa un código de seguimiento")
+            setError("Please enter a tracking code")
             return
         }
 
@@ -100,9 +100,9 @@ export default function TrackPackage() {
 
             if (!packageResponse.ok) {
                 if (packageResponse.status === 404) {
-                    throw new Error("Código de seguimiento no encontrado")
+                    throw new Error("Tracking code not found")
                 }
-                throw new Error("Error al buscar el paquete")
+                throw new Error("Error fetching the package")
             }
 
             const packageInfo = await packageResponse.json()
@@ -114,7 +114,7 @@ export default function TrackPackage() {
             })
 
             if (!tracksResponse.ok) {
-                throw new Error("Error al obtener el historial de seguimiento")
+                throw new Error("Error fetching tracking history")
             }
 
             const tracks = await tracksResponse.json()
@@ -160,7 +160,7 @@ export default function TrackPackage() {
                 trackingNumber: packageInfo.code,
                 status: mapPackageState(packageInfo.state),
                 estimatedDelivery: formatDate(estimatedDelivery.toISOString()),
-                currentLocation: destination ? `${destination.city}, ${destination.province}` : "En tránsito",
+                currentLocation: destination ? `${destination.city}, ${destination.province}` : "In Transit",
                 recipient: packageInfo.receiver_name,
                 receiverEmail: packageInfo.receiver_email,
                 size: packageInfo.size,
@@ -172,7 +172,7 @@ export default function TrackPackage() {
             setPackageData(processedPackageData)
         } catch (err) {
             console.error("[v0] Error fetching package data:", err)
-            setError(err instanceof Error ? err.message : "Error al buscar el paquete")
+            setError(err instanceof Error ? err.message : "Error fetching the package")
             setPackageData(null)
         } finally {
             setIsLoading(false)
@@ -181,7 +181,7 @@ export default function TrackPackage() {
 
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
-            case "entregado":
+            case "delivered":
                 return {
                     backgroundColor: "#dcfce7",
                     color: "#166534",
@@ -190,7 +190,7 @@ export default function TrackPackage() {
                     fontSize: "12px",
                     fontWeight: "500",
                 }
-            case "en tránsito":
+            case "in transit":
                 return {
                     backgroundColor: "#dbeafe",
                     color: "#1e40af",
@@ -199,7 +199,7 @@ export default function TrackPackage() {
                     fontSize: "12px",
                     fontWeight: "500",
                 }
-            case "en depósito":
+            case "on hold":
                 return {
                     backgroundColor: "#fef3c7",
                     color: "#92400e",
@@ -208,7 +208,7 @@ export default function TrackPackage() {
                     fontSize: "12px",
                     fontWeight: "500",
                 }
-            case "cancelado":
+            case "cancelled":
                 return {
                     backgroundColor: "#fee2e2",
                     color: "#dc2626",
@@ -271,7 +271,7 @@ export default function TrackPackage() {
                             marginBottom: "8px",
                         },
                     },
-                    "Seguimiento de Paquetes",
+                    "Package Tracking",
                 ),
                 h(
                     "p",
@@ -281,7 +281,7 @@ export default function TrackPackage() {
                             fontSize: "18px",
                         },
                     },
-                    "Rastrea tu paquete en tiempo real",
+                    "Track your package in real time",
                 ),
             ),
 
@@ -311,7 +311,7 @@ export default function TrackPackage() {
                                 gap: "8px",
                             },
                         },
-                        "🔍 Buscar Paquete",
+                        "🔍 Search Package",
                     ),
                     h(
                         "p",
@@ -321,7 +321,7 @@ export default function TrackPackage() {
                                 fontSize: "14px",
                             },
                         },
-                        "Ingresa tu código de seguimiento para ver el estado de tu envío",
+                        "Enter your tracking code to see the status of your shipment",
                     ),
                 ),
                 h(
@@ -329,7 +329,7 @@ export default function TrackPackage() {
                     { style: { display: "flex", gap: "16px", marginBottom: "16px" } },
                     h("input", {
                         type: "text",
-                        placeholder: "Ej: 10000001",
+                        placeholder: "e.g. 10000001",
                         value: trackingNumber,
                         onChange: (e) => setTrackingNumber(e.target.value),
                         onKeyPress: (e) => e.key === "Enter" && handleSearch(),
@@ -357,7 +357,7 @@ export default function TrackPackage() {
                                 cursor: isLoading ? "not-allowed" : "pointer",
                             },
                         },
-                        isLoading ? "⏳ Buscando..." : "Rastrear",
+                        isLoading ? "⏳ Searching..." : "Track",
                     ),
                 ),
                 error &&
@@ -411,7 +411,7 @@ export default function TrackPackage() {
                                     fontWeight: "600",
                                 },
                             },
-                            "Información del Paquete",
+                            "Package Information",
                         ),
                         h("span", { style: getStatusColor(packageData.status) }, packageData.status),
                     ),
@@ -427,13 +427,13 @@ export default function TrackPackage() {
                         h(
                             "div",
                             null,
-                            h("p", { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } }, "Código de seguimiento"),
+                            h("p", { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } }, "Tracking code"),
                             h("p", { style: { fontFamily: "monospace", fontWeight: "600" } }, packageData.trackingNumber),
                         ),
                         h(
                             "div",
                             null,
-                            h("p", { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } }, "Destinatario"),
+                            h("p", { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } }, "Recipient"),
                             h("p", { style: { fontWeight: "600" } }, packageData.recipient),
                         ),
                         h(
@@ -442,7 +442,7 @@ export default function TrackPackage() {
                             h(
                                 "p",
                                 { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } },
-                                "Email del destinatario",
+                                "Recipient Email",
                             ),
                             h("p", { style: { fontWeight: "600" } }, packageData.receiverEmail),
                         ),
@@ -455,13 +455,13 @@ export default function TrackPackage() {
                         h(
                             "div",
                             null,
-                            h("p", { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } }, "Tamaño"),
+                            h("p", { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } }, "Size"),
                             h("p", { style: { fontWeight: "600" } }, packageData.size),
                         ),
                         h(
                             "div",
                             null,
-                            h("p", { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } }, "Peso"),
+                            h("p", { style: { fontSize: "12px", color: "#6b7280", marginBottom: "4px" } }, "Weight"),
                             h("p", { style: { fontWeight: "600" } }, packageData.weight),
                         ),
                     ),
@@ -489,7 +489,7 @@ export default function TrackPackage() {
                                     marginBottom: "4px",
                                 },
                             },
-                            "Historial de Seguimiento",
+                            "Tracking History",
                         ),
                         h(
                             "p",
@@ -499,7 +499,7 @@ export default function TrackPackage() {
                                     fontSize: "14px",
                                 },
                             },
-                            "Sigue el progreso de tu paquete paso a paso",
+                            "Follow the progress of your package step by step",
                         ),
                     ),
                     h(
@@ -651,7 +651,7 @@ export default function TrackPackage() {
                                 marginBottom: "8px",
                             },
                         },
-                        "¿Cómo usar el seguimiento?",
+                        "How to use the tracker?",
                     ),
                     h(
                         "p",
@@ -662,7 +662,7 @@ export default function TrackPackage() {
                                 marginBottom: "16px",
                             },
                         },
-                        "Ingresa tu código de seguimiento en el campo de búsqueda para ver el estado de tu paquete",
+                        "Enter your tracking code in the search field to see your package status",
                     ),
                 ),
             ),
