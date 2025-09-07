@@ -54,7 +54,7 @@ const MOCK_PACKAGES = [
 export default function ManagePackages() {
     // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
     // roles -> admin | user
-    const  role  = "admin"
+    const  role  = "user"
 
     const [packages, setPackages] = useState(MOCK_PACKAGES);
     const [filteredPackages, setFilteredPackages] = useState(MOCK_PACKAGES);

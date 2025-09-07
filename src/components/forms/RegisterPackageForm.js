@@ -1,37 +1,81 @@
 import React from "react";
 import { Form, Input, Button, Card, Row, Col } from "antd";
 import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined} from "@ant-design/icons";
+import api from "../../lib/axios";
+import {useReceivers} from "../../hooks/services/useReceivers";
+import {useAddresses} from "../../hooks/services/useAddresses";
+import {usePackages} from "../../hooks/services/usePackages";
 
-export function RegisterPackageForm({ onSubmit }) {
+export function RegisterPackageForm() {
     const [form] = Form.useForm();
-    // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { userId } = useContext(AuthContext);
-    const { userId } = "1";
+    const { createPackage } = usePackages(api);
+    const { createAddress } = useAddresses(api);
+    const { createReceiver } = useReceivers(api);
 
 
-    const handleFinish = (values) => {
-        const packageData = {
-            ...values,
-            sender: userId,
-            status: "CREATED",
-        };
-        onSubmit(packageData, form.resetFields);
+    const handleFinish = async (values) => {
+        try {
+            const token = sessionStorage.getItem("access_token");
+
+            const originAddress = await createAddress(values.origin, token);
+            const destinationAddress = await createAddress(values.destination, token);
+
+            const receiver = await createReceiver(
+                { name: values.receiver, email: values.email },
+                token
+            );
+
+            const pkg = await createPackage(
+                {
+                    origin: originAddress.id,
+                    destination: destinationAddress.id,
+                    receiver: receiver.id,
+                    size: values.size,
+                    weight: values.weight,
+                },
+                token
+            );
+
+            console.log("Package created:", pkg);
+            form.resetFields();
+        } catch (err) {
+            console.error("Error creating package:", err);
+        }
     };
 
-    const addressFields = ["Street", "Number", "Apartment (optional)", "City", "Province", "Zip Code"];
+
+    const addressFields = [
+        { label: "Street", name: "street" },
+        { label: "Number", name: "number" },
+        { label: "Apartment (optional)", name: "apartment", optional: true },
+        { label: "City", name: "city" },
+        { label: "Province", name: "province" },
+        { label: "Zip Code", name: "zip_code" },
+        { label: "Details (optional)", name: "details", optional: true },
+    ];
 
     const renderAddressFields = (prefix) =>
         addressFields.map((field) => (
-            <Col key={`${prefix}-${field}`} span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+            <Col
+                key={`${prefix}-${field.name}`}
+                span={field.name === "details" ? 24 : 12} // full width for details
+                style={{ paddingRight: 12, paddingBottom: 12 }}
+            >
                 <Form.Item
-                    label={field.charAt(0).toUpperCase() + field.slice(1)}
-                    name={[prefix, field]}
-                    rules={field === "Apartment (optional)" ? [] : [{ required: true, message: `Please enter ${prefix} ${field}` }]}
+                    label={field.label}
+                    name={[prefix, field.name]}
+                    rules={
+                        field.optional ? [] : [{ required: true, message: `Please enter ${prefix} ${field.label}` }]
+                    }
                 >
-                    <Input placeholder={field} size="middle" />
+                    {field.name === "details" ? (
+                        <Input.TextArea placeholder={field.label} rows={3} />
+                    ) : (
+                        <Input placeholder={field.label} size="middle" />
+                    )}
                 </Form.Item>
             </Col>
         ));
-
 
     return (
         <Form
@@ -65,16 +109,6 @@ export function RegisterPackageForm({ onSubmit }) {
                         </Form.Item>
                     </Col>
                 </Row>
-                <Row gutter={16}>
-                    <Col span={24} style={{ paddingRight: 12, paddingBottom: 12 }}>
-                        <Form.Item
-                            label="Comments"
-                            name="comments"
-                        >
-                            <Input.TextArea placeholder="Add any additional notes or comments here..." rows={4} />
-                        </Form.Item>
-                    </Col>
-                </Row>
             </Card>
 
             {/* Origin */}
@@ -84,36 +118,6 @@ export function RegisterPackageForm({ onSubmit }) {
             >
                 <Row gutter={16}>
                     {renderAddressFields("origin")}
-                </Row>
-            </Card>
-
-            {/* Sender */}
-            <Card
-                title={<span style={{ color: "#fa8c16" }}><UserOutlined /> Sender</span>}
-                style={{ marginBottom: 16, borderLeft: "5px solid #fa8c16" }}
-            >
-                <Row gutter={16}>
-                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
-                        <Form.Item
-                            label="Name"
-                            name="sender"
-                            rules={[{ required: true, message: "Please enter the sender's name" }]}
-                        >
-                            <Input placeholder="Sender name" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
-                        <Form.Item
-                            label="Email"
-                            name="senderEmail"
-                            rules={[
-                                { required: true, message: "Please enter sender email" },
-                                { type: "email", message: "Please enter a valid email" }
-                            ]}
-                        >
-                            <Input placeholder="Sender email" prefix={<MailOutlined />} />
-                        </Form.Item>
-                    </Col>
                 </Row>
             </Card>
 
