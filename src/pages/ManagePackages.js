@@ -87,7 +87,7 @@ export default function ManagePackages() {
     const handleNewPackage = (pkg) => {
         setPackages((prev) => [...prev, pkg]);
         setFilteredPackages((prev) => [...prev, pkg]);
-        message.success(`Package ${pkg.id} registered!`);
+        message.success(`Package ${pkg.code} registered!`);
     };
     return (
         <div style={{ padding: "2rem" }}>
