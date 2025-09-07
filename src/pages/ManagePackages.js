@@ -13,7 +13,7 @@ const { Search } = Input;
 export default function ManagePackages() {
     // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
     // roles -> admin | user
-    const role = "admin";
+    const role = "user";
 
     const [packages, setPackages] = useState([]);
     const [filteredPackages, setFilteredPackages] = useState([]);
@@ -88,7 +88,7 @@ export default function ManagePackages() {
     const handleNewPackage = (pkg) => {
         setPackages((prev) => [...prev, pkg]);
         setFilteredPackages((prev) => [...prev, pkg]);
-        message.success(`Package ${pkg.id} registered!`);
+        message.success(`Package ${pkg.code} registered!`);
     };
     return (
         <div style={{ padding: "2rem" }}>

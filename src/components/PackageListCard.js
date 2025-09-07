@@ -19,7 +19,7 @@ export default function PackageListCard({
                             style={{ cursor: "pointer", flex: 1 }}
                         >
                             <List.Item.Meta
-                                title={`Package ID: ${pkg.id} | State: ${pkg.state || "pending"}`}
+                                title={`Package Code: ${pkg.code} | State: ${pkg.state || "pending"}`}
                                 description={
                                     <>
                                         <p>
