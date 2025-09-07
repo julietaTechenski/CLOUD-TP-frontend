@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import { Button, Card, Modal, List, Input, message } from "antd";
 import { RegisterPackageForm } from "../components/forms/RegisterPackageForm";
-import UpdatePackage from "./UpdatePackage";
+import UpdatePackageModal from "./UpdatePackage";
 
 const { Search } = Input;
 
@@ -30,6 +30,17 @@ const MOCK_PACKAGES = [
                 comment: "Arrived at New York depot",
                 timestamp: "2025-09-05T10:00:00Z",
                 action: "ARRIVED_DEPOT",
+                depot: {
+                    id: "depot-1",
+                    name: "New York Depot",
+                },
+            },
+            {
+                id: "track-uuid-1",
+                package_id: "package-uuid-1",
+                comment: "Arrived at New York depot",
+                timestamp: "2025-09-06T10:00:00Z",
+                action: "SEND_FINAL",
                 depot: {
                     id: "depot-1",
                     name: "New York Depot",
@@ -181,9 +192,11 @@ export default function ManagePackages() {
                 width={600}
             >
                 {selectedPackage && (
-                    <UpdatePackage
-                        isOpen={isUpdateModalVisible}
-                        onClose={() => setUpdateModalVisible(false)}
+                    <UpdatePackageModal
+                        onClose={() => {
+                            setUpdateModalVisible(false);
+                            setSelectedPackage(null);
+                        }}
                         packageData={selectedPackage}
                     />
                 )}

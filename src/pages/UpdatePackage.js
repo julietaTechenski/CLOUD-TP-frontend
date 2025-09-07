@@ -1,17 +1,10 @@
 import {useEffect, useState} from "react"
-import { Modal, Button, Card, Badge, Select, Typography } from "antd"
-import { EnvironmentOutlined, ClockCircleOutlined, CheckCircleTwoTone } from "@ant-design/icons"
+import {Modal, Button, Card, Select, Typography, Divider} from "antd"
+import {EnvironmentOutlined, CheckCircleTwoTone} from "@ant-design/icons"
 
-const { Title, Text } = Typography
+const {Text} = Typography
 
 
-const packageStates = Object.freeze({
-    created: "CREATED",
-    onHold: "ON_HOLD",
-    inTransit: "IN_TRANSIT",
-    delivered: "DELIVERED",
-    cancelled: "CANCELLED",
-});
 
 
 const actions = Object.freeze({
@@ -24,8 +17,9 @@ const actions = Object.freeze({
 
 // /depots
 // /depots/{id}
-export default function UpdatePackage({ isOpen, onClose, packageData }) {
+export default function UpdatePackageModal({onClose, packageData}) {
     const [modalState, setModalState] = useState("send-to");
+    const [lastLocation, setLastLocation] = useState([]);
 
     useEffect(() => {
         if (packageData?.tracks?.length) {
@@ -34,39 +28,44 @@ export default function UpdatePackage({ isOpen, onClose, packageData }) {
                     ? "arrived-at"
                     : "send-to"
             );
+            setIsCancelModalOpen(false);
+            setLastLocation(packageData.tracks[packageData.tracks.length - 1]);
         }
     }, [packageData]);
 
     const [destinationType, setDestinationType] = useState("")
     const [selectedDepot, setSelectedDepot] = useState("")
     const [shipmentStatus, setShipmentStatus] = useState("");
-
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
     const depots = [
-        { id: "depot-a", name: "Depot A - Norte" },
-        { id: "depot-b", name: "Depot B - Sur" },
-        { id: "depot-c", name: "Depot C - Este" },
-        { id: "depot-d", name: "Depot D - Oeste" },
+        {id: "depot-a", name: "Depot A - Norte"},
+        {id: "depot-b", name: "Depot B - Sur"},
+        {id: "depot-c", name: "Depot C - Este"},
+        {id: "depot-d", name: "Depot D - Oeste"},
     ]
 
     const handleConfirm = () => {
-        console.log("Confirmando actualización:", {
+        console.log("Confirming new destination:", {
             modalState,
             destinationType,
             selectedDepot,
         })
+        // TODO: update package destination API call -> package needs to be sent to...
         onClose()
         resetForm()
     }
 
     const handleConfirmShipment = () => {
-        console.log("Confirmando envío del paquete")
+        // TODO: update shipment status API call -> package has arrives
+        console.log("Confirming shipment with status:", shipmentStatus)
         onClose()
         resetForm()
     }
 
     const handleCancelShipment = () => {
-        console.log("Cancelando envío del paquete")
+        // TODO: cancel shipment API call -> package shipment cancelled
+        console.log("Cancelling shipment")
         onClose()
         resetForm()
     }
@@ -77,135 +76,175 @@ export default function UpdatePackage({ isOpen, onClose, packageData }) {
     }
 
     const resetForm = () => {
-        setModalState("send-to")
+        setModalState(packageData.tracks[packageData.tracks.length - 1].action === actions.arrivedDepot
+            ? "arrived-at"
+            : "send-to")
         setDestinationType("")
         setSelectedDepot("")
+        setShipmentStatus("")
+        setIsCancelModalOpen(false)
+
     }
 
-    const getDestinationText = () => {
-        const isGoingToFinal =true
-        return isGoingToFinal ? "destino final" : "depósito"
-    }
-
-    const handleArrivedClick = () => {
-        setModalState("sent-to")
-    }
 
     return (
-        <Modal
-            title={`Actualizar Paquete ${packageData.id}`}
-            open={isOpen}
-            onCancel={handleCancel}
-            footer={null}
-            width={700}
-        >
-            {/* Estado send-to */}
-            {modalState === "send-to" && (
-                <>
-                    <Card style={{ marginBottom: 16 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            {/* Contenedor de textos a la izquierda */}
-                            <div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <EnvironmentOutlined style={{ fontSize: 18, color: "#1890ff" }} />
-                                    <Text strong>Enviando a: {packageData.destination?.street}, {packageData.destination?.city}</Text>
-                                </div>
-                                <Text type="secondary">Destino: {packageData.destination?.street}, {packageData.destination?.city}</Text>
+        <>
+        {/* Estado send-to */}
+        {modalState === "send-to" && (
+            <>
+                <Card style={{marginBottom: 16}}>
+                    <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                        {/* Contenedor de textos a la izquierda */}
+                        <div>
+                            <div style={{display: "flex", alignItems: "center", gap: 8}}>
+                                <EnvironmentOutlined style={{fontSize: 18, color: "#1890ff"}}/>
+                                <Text strong>Package on the way to: {packageData.destination?.street}, {packageData.destination?.city}</Text>
                             </div>
+                            <Text
+                                type="secondary">Final destination: {packageData.destination?.street}, {packageData.destination?.city}</Text>
 
-                            {/* Dropdown a la derecha */}
-                            <Select
-                                style={{ width: 120 }}
-                                placeholder="Estado"
-                                value={shipmentStatus || undefined}
-                                onChange={setShipmentStatus}
-                            >
-                                <Select.Option value="pending">Pendiente</Select.Option>
-                                <Select.Option value="received">Recibido</Select.Option>
-                            </Select>
+                            { lastLocation.action === actions.sentToFinal &&
+                            <div style={{marginTop: 8, color: "#749be8"}}>
+                                <span>This the package's final destination.</span>
+                            </div>
+                            }
                         </div>
-                    </Card>
 
-                    <div style={{ textAlign: "right" }}>
-                        <Button style={{ marginRight: 8 }} onClick={handleCancelShipment}>
-                            Cancelar Envío
-                        </Button>
+                        {/* Dropdown a la derecha */}
+                        <Select
+                            style={{width: 120}}
+                            placeholder="Status"
+                            value={shipmentStatus || "pending"}
+                            onChange={setShipmentStatus}
+                        >
+                            <Select.Option value="pending">Pending</Select.Option>
+                            <Select.Option className={"confirmation-dropdown-item"}
+                                           value="received">Received</Select.Option>
+                        </Select>
+                    </div>
+                </Card>
+
+                <div style={{textAlign: "right"}}>
+                    <Button style={{marginRight: 8}} onClick={handleCancel}>
+                        Cancel
+                    </Button>
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            if (shipmentStatus === "received") {
+                                console.log("Package received at destination");
+                                handleConfirmShipment();
+                            } else {
+                                console.log("Package is still pending");
+                                handleConfirmShipment();
+                            }
+                        }}
+                        disabled={!shipmentStatus} // deshabilitado hasta seleccionar
+                    >
+                        Confirm Arrival
+                    </Button>
+                </div>
+
+                <Divider />
+                <Card style={{marginBottom: 16, border: '1px solid #ff4d4f'}}>
+                    <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                        {/* Contenedor de textos a la izquierda */}
+                        <div style={{paddingRight: 16}}>
+                            <div style={{display: "flex", alignItems: "center", gap: 8}}>
+                                <Text>Cancel package delivery</Text>
+                            </div>
+                            <Text
+                                type="secondary">When pressing this botton you're cancelling the delivery of the package. It will be sent back to the origin location.</Text>
+                        </div>
                         <Button
                             type="primary"
-                            onClick={() => {
-                                if (shipmentStatus === "received") {
-                                    console.log("Paquete marcado como recibido");
-                                    handleConfirmShipment();
-                                } else {
-                                    console.log("Paquete sigue pendiente");
-                                    handleConfirmShipment();
-                                }
-                            }}
-                            disabled={!shipmentStatus} // deshabilitado hasta seleccionar
+                            danger
+                            style={{ marginRight: 8 }}
+                            onClick={() => setIsCancelModalOpen(true)}
                         >
-                            Confirmar Envío
+                            Cancel delivery
                         </Button>
+
                     </div>
-                </>
-            )}
+                </Card>
+            </>
+        )}
 
 
+        {/* Estado arrived-at */}
+        {modalState === "arrived-at" && (
+            <>
+                <Card title="Package has arrived at one of our warehouses" style={{marginBottom: 16}}>
+                    <div style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 16}}>
+                        <CheckCircleTwoTone twoToneColor="#52c41a" style={{fontSize: 20}}/>
+                        <Text strong>Arrived at: {lastLocation}</Text>
+                    </div>
 
-            {/* Estado arrived-at */}
-            {modalState === "arrived-at" && (
-                <>
-                    <Card title="Paquete ha llegado" style={{ marginBottom: 16 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                            <CheckCircleTwoTone twoToneColor="#52c41a" style={{ fontSize: 20 }} />
-                            <Text strong>Llegó a: {packageData.currentLocation}</Text>
-                        </div>
+                    <div style={{marginBottom: 12}}>
+                        <Text strong>Select where the package should go next:</Text>
+                        <Select
+                            style={{width: "100%", marginTop: 8}}
+                            placeholder="Select destination type"
+                            value={destinationType || undefined}
+                            onChange={setDestinationType}
+                        >
+                            <Select.Option value="final">Final destination</Select.Option>
+                            <Select.Option value="depot">Warehouse</Select.Option>
+                        </Select>
+                    </div>
 
-                        <div style={{ marginBottom: 12 }}>
-                            <Text strong>Seleccionar próximo destino:</Text>
+                    {destinationType === "depot" && (
+                        <div>
+                            <Text strong>Select a warehouse:</Text>
                             <Select
-                                style={{ width: "100%", marginTop: 8 }}
-                                placeholder="Seleccionar tipo de destino"
-                                value={destinationType || undefined}
-                                onChange={setDestinationType}
+                                style={{width: "100%", marginTop: 8}}
+                                placeholder="Select warehouse"
+                                value={selectedDepot || undefined}
+                                onChange={setSelectedDepot}
                             >
-                                <Select.Option value="final">Destino Final</Select.Option>
-                                <Select.Option value="depot">Depósito</Select.Option>
+                                {depots.map((depot) => (
+                                    <Select.Option key={depot.id} value={depot.id}>
+                                        {depot.name}
+                                    </Select.Option>
+                                ))}
                             </Select>
                         </div>
+                    )}
+                </Card>
 
-                        {destinationType === "depot" && (
-                            <div>
-                                <Text strong>Seleccionar depósito:</Text>
-                                <Select
-                                    style={{ width: "100%", marginTop: 8 }}
-                                    placeholder="Seleccionar depósito"
-                                    value={selectedDepot || undefined}
-                                    onChange={setSelectedDepot}
-                                >
-                                    {depots.map((depot) => (
-                                        <Select.Option key={depot.id} value={depot.id}>
-                                            {depot.name}
-                                        </Select.Option>
-                                    ))}
-                                </Select>
-                            </div>
-                        )}
-                    </Card>
+                <div style={{textAlign: "right"}}>
+                    <Button style={{marginRight: 8}} onClick={handleCancel}>
+                        Cancel
+                    </Button>
+                    <Button
+                        type="primary"
+                        onClick={handleConfirm}
+                        disabled={!destinationType || (destinationType === "depot" && !selectedDepot)}
+                    >
+                        Confirm destination
+                    </Button>
+                </div>
+            </>
+        )}
+            {/* Modal de confirmación de cancelación */}
+            <Modal
+                title="Confirm Cancellation"
+                open={isCancelModalOpen}
+                onOk={() => {
+                    handleCancelShipment();
+                    setIsCancelModalOpen(false);
+                }}
+                onCancel={() => setIsCancelModalOpen(false)}
+                okText="Yes, Cancel"
+                cancelText="No, Go Back"
+                okButtonProps={{ danger: true, type: "primary" }}
+            >
+                <p>
+                    Are you sure you want to cancel the delivery of this package?
+                    It will be sent back to the sender.
+                </p>
+            </Modal>
 
-                    <div style={{ textAlign: "right" }}>
-                        <Button style={{ marginRight: 8 }} onClick={handleCancel}>
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="primary"
-                            onClick={handleConfirm}
-                            disabled={!destinationType || (destinationType === "depot" && !selectedDepot)}
-                        >
-                            Confirmar
-                        </Button>
-                    </div>
-                </>
-            )}
-        </Modal>
+        </>
     )
 }
