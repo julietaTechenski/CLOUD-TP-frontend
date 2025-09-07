@@ -1,4 +1,6 @@
-export const useAddresses = (api) => ({
+import api from "../../lib/axios";
+
+export const useAddresses = () => ({
     createAddress: (data) => {
         const requiredFields = ["street", "city", "province", "zip_code"];
         for (const field of requiredFields) {
@@ -9,5 +11,5 @@ export const useAddresses = (api) => ({
 
         return api.post("/addresses/", data);
     },
-
+    getAddresses: () => api.get("/addresses/"),
 });
