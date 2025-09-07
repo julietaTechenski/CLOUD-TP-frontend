@@ -1,48 +1,38 @@
 import React from "react";
-import { Form, Input, Button, Card, Row, Col } from "antd";
+import {Form, Input, Button, Card, Row, Col, message} from "antd";
 import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined} from "@ant-design/icons";
 import api from "../../lib/axios";
-import {useReceivers} from "../../hooks/services/useReceivers";
 import {useAddresses} from "../../hooks/services/useAddresses";
 import {usePackages} from "../../hooks/services/usePackages";
 
-export function RegisterPackageForm() {
+export function RegisterPackageForm({ onSubmit }) {
     const [form] = Form.useForm();
     const { createPackage } = usePackages(api);
     const { createAddress } = useAddresses(api);
-    const { createReceiver } = useReceivers(api);
-
 
     const handleFinish = async (values) => {
         try {
-            const token = sessionStorage.getItem("access_token");
+            const originAddress = await createAddress(values.origin);
+            const destinationAddress = await createAddress(values.destination);
 
-            const originAddress = await createAddress(values.origin, token);
-            const destinationAddress = await createAddress(values.destination, token);
+            const pkg = await createPackage({
+                origin: originAddress.data.id,
+                destination: destinationAddress.data.id,
+                receiver_name: values.receiver,
+                receiver_email:values.email,
+                size: values.size,
+                status: "CREATED",
+                weight: values.weight,
+                email: values.email,
+            });
 
-            const receiver = await createReceiver(
-                { name: values.receiver, email: values.email },
-                token
-            );
-
-            const pkg = await createPackage(
-                {
-                    origin: originAddress.id,
-                    destination: destinationAddress.id,
-                    receiver: receiver.id,
-                    size: values.size,
-                    weight: values.weight,
-                },
-                token
-            );
-
-            console.log("Package created:", pkg);
             form.resetFields();
+            if (onSubmit) onSubmit(pkg.data, () => form.resetFields());
         } catch (err) {
-            console.error("Error creating package:", err);
+            console.error(err);
+            message.error("Something went wrong while creating the package");
         }
     };
-
 
     const addressFields = [
         { label: "Street", name: "street" },
@@ -150,7 +140,7 @@ export function RegisterPackageForm() {
                     <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
                         <Form.Item
                             label="Email"
-                            name="receiverEmail"
+                            name="email"
                             rules={[
                                 { required: true, message: "Please enter receiver email" },
                                 { type: "email", message: "Please enter a valid email" }

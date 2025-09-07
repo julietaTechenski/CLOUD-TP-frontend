@@ -54,12 +54,12 @@ const MOCK_PACKAGES = [
 export default function ManagePackages() {
     // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
     // roles -> admin | user
-    const  role  = "admin"
+    const  role  = "user"
 
     const [packages, setPackages] = useState(MOCK_PACKAGES);
     const [filteredPackages, setFilteredPackages] = useState(MOCK_PACKAGES);
     const [isRegisterModalVisible, setRegisterModalVisible] = useState(false);
-    const [isUpdateModalVisible, setUpdateModalVisible] = useState(false);
+    const [setUpdateModalVisible] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
 
@@ -172,7 +172,7 @@ export default function ManagePackages() {
                 open={isRegisterModalVisible}
                 onCancel={() => setRegisterModalVisible(false)}
                 footer={null}
-                width={800} // make it wider
+                width={800}
             >
                 <RegisterPackageForm
                     onSubmit={(pkg, resetForm) => {
