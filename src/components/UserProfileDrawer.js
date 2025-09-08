@@ -15,7 +15,7 @@ export default function UserProfileDrawer({ visible, onClose, user }) {
         const names = name.split(" ");
         return names.map((n) => n[0].toUpperCase()).join("");
     };
-    const { handleLogout,email, firstName, lastName,role} = useAuth()
+    const { handleLogout,email, firstName, role} = useAuth()
 
     return (
         <Drawer

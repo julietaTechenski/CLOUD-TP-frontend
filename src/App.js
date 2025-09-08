@@ -13,7 +13,6 @@ function App() {
             <Routes>
                 <Route path="/" element={<AppLayout />}>
                     <Route index element={<Home />} />
-                    <Route path="profile" element={<Profile />} />
                     <Route path="test" element={<Test />} />
                     <Route path="packages" element={<ManagePackages />} />
                     <Route path="track" element={<TrackPackage />} />

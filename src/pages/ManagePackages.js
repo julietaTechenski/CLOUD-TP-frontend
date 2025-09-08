@@ -6,13 +6,14 @@ import {useAddresses} from "../hooks/services/useAddresses";
 import {usePackages} from "../hooks/services/usePackages";
 import PackageListCard from "../components/PackageListCard";
 import {useTracks} from "../hooks/services/useTracks";
+import {useAuth} from "../hooks/services/useAuth";
 
 const { Search } = Input;
 
 export default function ManagePackages() {
     // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
     // roles -> admin | user
-    const role = "admin";
+    const auth = useAuth();
 
     const [packages, setPackages] = useState([]);
     const [filteredPackages, setFilteredPackages] = useState([]);
@@ -91,7 +92,7 @@ export default function ManagePackages() {
     };
     return (
         <div style={{ padding: "2rem" }}>
-            {role === "user" && (
+            {auth.role === "user" && (
             <Card
                 title="Packages Management"
                 style={{ maxWidth: 800, margin: "0 auto 2rem auto" }}
@@ -107,7 +108,7 @@ export default function ManagePackages() {
             )}
 
             {/* Filter input */}
-            {role === "admin" && (
+            {auth.role === "admin" && (
             <Card
                 title="Filter Packages"
                 style={{ maxWidth: 800, margin: "0 auto 1rem auto" }}
@@ -122,7 +123,7 @@ export default function ManagePackages() {
             )}
 
             {/* Packages list */}
-            {role === "admin" && filteredPackages.length > 0 && (
+            {auth.role === "admin" && filteredPackages.length > 0 && (
                 <PackageListCard
                     packages={filteredPackages}
                     onSelectPackage={setSelectedPackage}
