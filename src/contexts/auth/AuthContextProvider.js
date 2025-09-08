@@ -14,21 +14,15 @@ export const AuthContextProvider = ({ children }) => {
 
     const handleLogin = useCallback( async(email,password ) => {
         setAuth((prev) => ({ ...prev, loading: true }));
-        console.log("Payload que voy a enviar:", { email, password });
         try {
             const res =await  api.post("/auth/token/", {email, password });
-            console.log("Respuesta del servidor:", res);
             const { access, refresh, userId, role } = res.data;
-
             sessionStorage.setItem("access_token", access);
             sessionStorage.setItem("refresh_token", refresh);
-
             setAuth({
                 authenticated: true,
                 accessToken: access,
                 refreshToken: refresh,
-                userId,
-                role,
                 loading: false,
             });
 
@@ -74,6 +68,26 @@ export const AuthContextProvider = ({ children }) => {
         }));
     }, []);
 
+    const setUserDetails = useCallback(async () => {
+        try {
+            const res = await api.get("/auth/me/");
+            const { id, role, email, first_name, last_name } = res.data;
+            setAuth((prev) => ({
+                ...prev,
+                userId: id,
+                role,
+                email,
+                firstName: first_name,
+                lastName: last_name,
+                loading: false,
+            }));
+        } catch (err) {
+            console.error("Error fetching user details:", err);
+            setAuth((prev) => ({ ...prev, loading: false }));
+        }
+    }, []);
+
+
     return (
         <AuthContext.Provider
             value={{
@@ -82,6 +96,7 @@ export const AuthContextProvider = ({ children }) => {
                 handleLogout,
                 handleTokensRefresh,
                 handleRegister,
+                setUserDetails,
             }}
         >
             {children}

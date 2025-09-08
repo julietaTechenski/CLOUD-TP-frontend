@@ -1,11 +1,9 @@
 import { useAuth } from "../hooks/services/useAuth";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
-    const { handleLogin, handleRegister } = useAuth();
-    const authContext = useAuth();
-    console.log("authContext:", authContext);
-
+    const {authenticated, handleLogin, handleRegister ,setUserDetails} = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
@@ -13,7 +11,14 @@ export default function Auth() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const navigate = useNavigate();
 
+    useEffect(() => {
+        if (authenticated) {
+            navigate("/track"); // or your main page
+        }
+    }, [authenticated, navigate]);
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -28,12 +33,14 @@ export default function Auth() {
         try {
             if (isLogin) {
                 await handleLogin(email, password);
-                alert("Login successful!");
+                await setUserDetails();
             } else {
-                console.log("Registering with:", { username, email, password });
                 await handleRegister(username,email, password);
-                alert("Account created! Now you can log in.");
-                setIsLogin(true);
+                setSuccessMessage("Account created successfully!");
+                setTimeout(() => {
+                    setSuccessMessage("");
+                    setIsLogin(true);
+                }, 2000);
             }
         }catch (err) {
             setError(err?.response?.data?.detail || err.message || String(err));
@@ -236,6 +243,11 @@ export default function Auth() {
                                 : "Crear Cuenta"}
                     </button>
                 </form>
+                {successMessage && (
+                    <div style={{ backgroundColor: "#d1fae5", color: "#065f46", padding: "12px", marginBottom: "16px", borderRadius: "6px" }}>
+                        {successMessage}
+                    </div>
+                )}
 
                 <div style={{marginTop: "16px", textAlign: "center"}}>
                     <p style={{fontSize: "14px", color: "#6b7280"}}>

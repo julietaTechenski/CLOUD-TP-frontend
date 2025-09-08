@@ -1,5 +1,6 @@
 import React from "react";
-import { Drawer, Avatar } from "antd";
+import { Drawer, Avatar, Button } from "antd";
+import {useAuth} from "../hooks/services/useAuth";
 
 /*
  Props:
@@ -14,6 +15,7 @@ export default function UserProfileDrawer({ visible, onClose, user }) {
         const names = name.split(" ");
         return names.map((n) => n[0].toUpperCase()).join("");
     };
+    const { handleLogout,email, firstName, lastName,role} = useAuth()
 
     return (
         <Drawer
@@ -25,14 +27,22 @@ export default function UserProfileDrawer({ visible, onClose, user }) {
         >
             <div style={{ textAlign: "center", marginBottom: 24 }}>
                 <Avatar size={64} style={{ backgroundColor: "#1890ff" }}>
-                    {getInitials(user?.name)}
+                    {getInitials(firstName)}
                 </Avatar>
-                <h3 style={{ marginTop: 16 }}>{user?.name}</h3>
-                <p>{user?.role}</p>
+                <h3 style={{ marginTop: 16 }}>{firstName}</h3>
+                <p>{role}</p>
             </div>
             <div>
                 <strong>Email:</strong>
-                <p>{user?.email}</p>
+                <p>{email}</p>
+            </div>
+            <div style={{ marginTop: 24, textAlign: "center" }}>
+                <Button danger block   onClick={() => {
+                    handleLogout();
+                    onClose();
+                }}>
+                    Logout
+                </Button>
             </div>
         </Drawer>
     );

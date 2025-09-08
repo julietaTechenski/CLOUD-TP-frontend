@@ -1,9 +1,10 @@
 // Layout.tsx
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { Layout, Menu, Button } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import "antd/dist/reset.css";
 import UserProfileDrawer from "./UserProfileDrawer";
+import { useAuth } from "../hooks/services/useAuth";
 
 const { Header, Content } = Layout;
 
@@ -16,17 +17,53 @@ const ROUTES = {
     AUTH: "/auth",
 };
 
-const MOCK_USER = {
-    name: "Valentina Marti",
-    role: "Admin",
-    email: "valentina@example.com",
-};
-
 export default function AppLayout() {
     const navigate = useNavigate();
     const location = useLocation();
-
+    const { authenticated, setUserDetails } = useAuth();
     const [isProfileDrawerVisible, setProfileDrawerVisible] = useState(false);
+
+    const menuItems = [
+        {
+            key: ROUTES.HOME,
+            label: "Home",
+            onClick: () => navigate(ROUTES.HOME),
+        },
+        {
+            key: ROUTES.PACKAGES,
+            label: "Manage Package",
+            onClick: () => navigate(ROUTES.PACKAGES),
+        },
+        {
+            key: ROUTES.TEST,
+            label: "Test",
+            onClick: () => navigate(ROUTES.TEST),
+        },
+        {
+            key: ROUTES.TRACK,
+            label: "Track",
+            onClick: () => navigate(ROUTES.TRACK),
+        },
+    ];
+
+    if (authenticated) {
+        menuItems.push({
+            key: ROUTES.PROFILE,
+            label: "Profile",
+            onClick:  () => {
+                setProfileDrawerVisible(true);
+            },
+        });
+    } else {
+        menuItems.push({
+            key: "auth",
+            label: (
+                <Button type="primary" onClick={() => navigate(ROUTES.AUTH)}>
+                    Log In
+                </Button>
+            ),
+        });
+    }
 
     return (
         <Layout style={{ minHeight: "100vh" }}>
@@ -40,46 +77,13 @@ export default function AppLayout() {
                 <div style={{ color: "white", fontSize: "1.5rem", fontWeight: "bold" }}>
                     FastTrack Delivery
                 </div>
+
                 <Menu
                     theme="dark"
                     mode="horizontal"
                     selectedKeys={[location.pathname]}
-                    style={{ display: "flex", flex: 1, justifyContent: "flex-end" }}
-                    items={[
-                        {
-                            key: ROUTES.HOME,
-                            label: "Home",
-                            onClick: () => navigate(ROUTES.HOME),
-                        },
-                        {
-                            key: ROUTES.PACKAGES,
-                            label: "Manage Package",
-                            onClick: () => navigate(ROUTES.PACKAGES),
-                        },
-                        {
-                            key: ROUTES.TEST,
-                            label: "Test",
-                            onClick: () => navigate(ROUTES.TEST),
-                        },
-                        {
-                            key: ROUTES.TRACK,
-                            label: "Track",
-                            onClick: () => navigate(ROUTES.TRACK),
-                        },
-                        {
-                            key: ROUTES.PROFILE,
-                            label: "Profile",
-                            onClick: () => setProfileDrawerVisible(true),
-                        },
-                        {
-                            key: "auth",
-                            label: (
-                                <Button type="primary" onClick={() => navigate(ROUTES.AUTH)}>
-                                    Log In
-                                </Button>
-                            ),
-                        },
-                    ]}
+                    style={{ flex: 1, justifyContent: "flex-end" }}
+                    items={menuItems}
                 />
             </Header>
 
@@ -90,7 +94,6 @@ export default function AppLayout() {
             <UserProfileDrawer
                 visible={isProfileDrawerVisible}
                 onClose={() => setProfileDrawerVisible(false)}
-                user={MOCK_USER}
             />
         </Layout>
     );
