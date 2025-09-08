@@ -20,10 +20,11 @@ const actions = Object.freeze({
 export default function UpdatePackageModal({onClose, packageData}) {
     const [modalState, setModalState] = useState("send-to");
     const [lastLocation, setLastLocation] = useState([]);
+    const [lastDepotName, setLastDepotName] = useState("")
 
 
     const { getLatestPackageTrack } = useTracks();
-    const { getDepots } = useDepots();
+    const { getDepots, getDepotById } = useDepots();
     const { getAddress } = useAddresses();
 
     const { postPackageTrack } = useTracks();
@@ -33,9 +34,10 @@ export default function UpdatePackageModal({onClose, packageData}) {
             try {
                 const warehouses = await getDepots();
                 const lastTrack = await getLatestPackageTrack(packageData.code);
-                const destination = await getAddress(packageData.destination);
+                console.log("LAST_TRACK",lastTrack);
+                const depot = await getDepotById(lastTrack.data.depot);
 
-                console.log(warehouses.data)
+                console.log("DEPOT:", depot)
                 setModalState(
                     lastTrack.data.action === actions.arrivedDepot || lastTrack.data.action === actions.create
                         ? "arrived-at"
@@ -44,14 +46,14 @@ export default function UpdatePackageModal({onClose, packageData}) {
 
                 setLastLocation(lastTrack.data);
                 setDepots(warehouses.data);
-                packageData.destination = destination;
+                setLastDepotName(depot.data.name);
 
             } catch (err) {
                 console.error(err);
             }
         };
         fetchData();
-    }, [getAddress, getDepots, getLatestPackageTrack, packageData, packageData.code]);
+    }, [getAddress, getDepotById, getDepots, getLatestPackageTrack, packageData, packageData.code]);
 
     const [destinationType, setDestinationType] = useState("")
     const [selectedDepot, setSelectedDepot] = useState("")
@@ -126,7 +128,7 @@ export default function UpdatePackageModal({onClose, packageData}) {
                         <div>
                             <div style={{display: "flex", alignItems: "center", gap: 8}}>
                                 <EnvironmentOutlined style={{fontSize: 18, color: "#1890ff"}}/>
-                                <Text strong>Package on the way to: {lastLocation.depot}</Text>
+                                <Text strong>Package on the way to: {lastDepotName}</Text>
                             </div>
                             <Text
                                 type="secondary">Final destination: {packageData.destination?.street}, {packageData.destination?.city}</Text>

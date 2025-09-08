@@ -7,5 +7,9 @@ export const useDepots = () => {
         return api.get("/depots/");
     }, []);
 
-    return { getDepots };
+    const getDepotById = useCallback((id) => {
+        return api.get(`/depots/${id}/`);
+    }, []);
+
+    return { getDepots, getDepotById };
 };
