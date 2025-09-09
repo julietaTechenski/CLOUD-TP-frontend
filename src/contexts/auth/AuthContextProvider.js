@@ -6,9 +6,11 @@ export const AuthContextProvider = ({ children }) => {
     const [auth, setAuth] = useState({
         authenticated: !!sessionStorage.getItem("access_token"),
         accessToken: sessionStorage.getItem("access_token") || undefined,
-        refreshToken: sessionStorage.getItem("refresh_token") || undefined,
-        userId: undefined,
-        role: undefined,
+        userId: sessionStorage.getItem("userId") || undefined,
+        role: sessionStorage.getItem("role") || undefined,
+        email: sessionStorage.getItem("email") || undefined,
+        firstName: sessionStorage.getItem("firstName") || undefined,
+        lastName: sessionStorage.getItem("lastName") || undefined,
         loading: false,
     });
 
@@ -72,6 +74,11 @@ export const AuthContextProvider = ({ children }) => {
         try {
             const res = await api.get("/auth/me/");
             const { id, role, email, first_name, last_name } = res.data;
+            sessionStorage.setItem("userId", id);
+            sessionStorage.setItem("role", role);
+            sessionStorage.setItem("email", email);
+            sessionStorage.setItem("firstName", first_name);
+            sessionStorage.setItem("lastName", last_name);
             setAuth((prev) => ({
                 ...prev,
                 userId: id,
