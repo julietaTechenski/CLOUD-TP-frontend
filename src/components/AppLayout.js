@@ -42,17 +42,19 @@ export default function AppLayout() {
     ];
 
     if (authenticated) {
-        menuItems.push({
+        menuItems.push(
+            {
+            key: ROUTES.PACKAGES,
+            label: "Manage Package",
+            onClick: () => navigate(ROUTES.PACKAGES),
+        },
+        {
             key: ROUTES.PROFILE,
             label: "Profile",
             onClick:  () => {
                 setProfileDrawerVisible(true);
             },
-        },        {
-            key: ROUTES.PACKAGES,
-            label: "Manage Package",
-            onClick: () => navigate(ROUTES.PACKAGES),
-        },);
+        });
 
     } else {
         menuItems.push({
