@@ -11,8 +11,6 @@ import {useAuth} from "../hooks/services/useAuth";
 const { Search } = Input;
 
 export default function ManagePackages() {
-    // TODO -> esto esta estatico para probar, una vez que este lo de auth cambiar por    const { role } = useContext(AuthContext);
-    // roles -> admin | user
     const auth = useAuth();
 
     const [packages, setPackages] = useState([]);
@@ -21,6 +19,7 @@ export default function ManagePackages() {
     const [updateModalVisible, setUpdateModalVisible] = useState(false)
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
+
 
     const { getAddresses } = useAddresses();
     const { getPackages } = usePackages();
@@ -90,6 +89,9 @@ export default function ManagePackages() {
         setFilteredPackages((prev) => [...prev, pkg]);
         message.success(`Package ${pkg.code} registered!`);
     };
+
+    const userPackages = packages.filter(pkg => String(pkg.sender) === String(auth.userId));
+
     return (
         <div style={{ padding: "2rem" }}>
             {auth.role === "user" && (
@@ -106,6 +108,35 @@ export default function ManagePackages() {
                 </Button>
             </Card>
             )}
+
+            {/* Packages list for current user */}
+            {auth.role === "user" && (() => {
+                if (userPackages.length > 0) {
+                    return (
+                        <Card
+                            title="Your Packages"
+                            style={{ maxWidth: 800, margin: "1rem auto" }}
+                        >
+                            <ul>
+                                {userPackages.map((pkg) => (
+                                    <li key={pkg.id} style={{ marginBottom: "0.5rem" }}>
+                                        <strong>Code:</strong> {pkg.code} | <strong>Status:</strong> {pkg.state}
+                                    </li>
+                                ))}
+                            </ul>
+                        </Card>
+                    );
+                } else {
+                    return (
+                        <Card
+                            title="Your Packages"
+                            style={{ maxWidth: 800, margin: "1rem auto", textAlign: "center" }}
+                        >
+                            You don’t have any packages yet
+                        </Card>
+                    );
+                }
+            })()}
 
             {/* Filter input */}
             {auth.role === "admin" && (
