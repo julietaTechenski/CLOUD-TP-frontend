@@ -30,11 +30,6 @@ export default function AppLayout() {
             onClick: () => navigate(ROUTES.HOME),
         },
         {
-            key: ROUTES.PACKAGES,
-            label: "Manage Package",
-            onClick: () => navigate(ROUTES.PACKAGES),
-        },
-        {
             key: ROUTES.TEST,
             label: "Test",
             onClick: () => navigate(ROUTES.TEST),
@@ -53,7 +48,12 @@ export default function AppLayout() {
             onClick:  () => {
                 setProfileDrawerVisible(true);
             },
-        });
+        },        {
+            key: ROUTES.PACKAGES,
+            label: "Manage Package",
+            onClick: () => navigate(ROUTES.PACKAGES),
+        },);
+
     } else {
         menuItems.push({
             key: "auth",
