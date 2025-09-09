@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { createElement as h } from "react"
 
-const API_BASE_URL = "http://localhost:8001/api"
+const API_BASE_URL = process.env.REACT_APP_API_URL
 
 const formatDate = (dateString) => {
     const date = new Date(dateString)

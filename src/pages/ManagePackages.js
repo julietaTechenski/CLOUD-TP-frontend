@@ -76,7 +76,7 @@ export default function ManagePackages() {
         setFilteredPackages(
             packages.filter(
                 (pkg) =>
-                    pkg.id.toLowerCase().includes(lower) ||
+                    pkg.code.toLowerCase().includes(lower) ||
                     pkg.origin?.city.toLowerCase().includes(lower) ||
                     pkg.destination?.city.toLowerCase().includes(lower) ||
                     (pkg.state && pkg.state.toLowerCase().includes(lower))
@@ -145,7 +145,7 @@ export default function ManagePackages() {
                 style={{ maxWidth: 800, margin: "0 auto 1rem auto" }}
             >
                 <Search
-                    placeholder="Search by ID, city, or state"
+                    placeholder="Search by code, city, or state"
                     value={filterText}
                     onChange={(e) => setFilterText(e.target.value)}
                     allowClear
