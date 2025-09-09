@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { createElement as h } from "react"
-
-const API_BASE_URL = process.env.REACT_APP_API_URL
-
+import {useTracks} from "../hooks/services/useTracks";
+import {usePackages} from "../hooks/services/usePackages";
+import {useAddresses} from "../hooks/services/useAddresses";
 const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("en-US", {
@@ -80,6 +80,9 @@ export default function TrackPackage() {
     const [trackingNumber, setTrackingNumber] = useState("")
     const [packageData, setPackageData] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
+    const {getPackageTracks} = useTracks()
+    const {getPackageById} = usePackages()
+    const {getAddress} = useAddresses()
     const [error, setError] = useState("")
 
     const handleSearch = async () => {
@@ -92,44 +95,26 @@ export default function TrackPackage() {
         setError("")
 
         try {
-            const packageResponse = await fetch(`${API_BASE_URL}/packages/${trackingNumber}/`, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            })
+            const packageResponse = await getPackageById(trackingNumber);
 
-            if (!packageResponse.ok) {
+            if (!packageResponse) {
                 if (packageResponse.status === 404) {
                     throw new Error("Tracking code not found")
                 }
                 throw new Error("Error fetching the package")
             }
 
-            const packageInfo = await packageResponse.json()
+            const packageInfo =  packageResponse.data
 
-            const tracksResponse = await fetch(`${API_BASE_URL}/packages/${trackingNumber}/tracks/`, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            })
+            const tracksResponse = await getPackageTracks(trackingNumber);
 
-            if (!tracksResponse.ok) {
-                throw new Error("Error fetching tracking history")
-            }
+            const tracks = tracksResponse.data
 
-            const tracks = await tracksResponse.json()
+            const originResponse= await getAddress(packageInfo.origin);
+            const  destinationResponse = await getAddress(packageInfo.destination);
 
-            const [originResponse, destinationResponse] = await Promise.all([
-                fetch(`${API_BASE_URL}/addresses/${packageInfo.origin}/`, {
-                    headers: { "Content-Type": "application/json" },
-                }),
-                fetch(`${API_BASE_URL}/addresses/${packageInfo.destination}/`, {
-                    headers: { "Content-Type": "application/json" },
-                }),
-            ])
-
-            const origin = originResponse.ok ? await originResponse.json() : null
-            const destination = destinationResponse.ok ? await destinationResponse.json() : null
+            const origin = originResponse.data
+            const destination = destinationResponse.data
 
             const steps = tracks.map((track, index) => {
                 const actionDetails = getActionDetails(track.action)
@@ -171,7 +156,7 @@ export default function TrackPackage() {
 
             setPackageData(processedPackageData)
         } catch (err) {
-            console.error("[v0] Error fetching package data:", err)
+            console.error("Error fetching package data:", err)
             setError(err instanceof Error ? err.message : "Error fetching the package")
             setPackageData(null)
         } finally {
@@ -237,6 +222,8 @@ export default function TrackPackage() {
                 return { backgroundColor: "#3b82f6", color: "white" }
             case "pending":
                 return { backgroundColor: "#e5e7eb", color: "#6b7280" }
+            default:
+               return { backgroundColor: "#e5e7eb", color: "#6b7280"}
         }
     }
 
