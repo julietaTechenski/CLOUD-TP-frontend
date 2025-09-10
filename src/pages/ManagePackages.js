@@ -7,6 +7,7 @@ import {usePackages} from "../hooks/services/usePackages";
 import PackageListCard from "../components/PackageListCard";
 import {useTracks} from "../hooks/services/useTracks";
 import {useAuth} from "../hooks/services/useAuth";
+import {useDepots} from "../hooks/services/useDepots";
 
 const { Search } = Input;
 
@@ -14,6 +15,7 @@ export default function ManagePackages() {
     const auth = useAuth();
 
     const [packages, setPackages] = useState([]);
+    const [depotsMap, setDepotsMap] = useState({});
     const [filteredPackages, setFilteredPackages] = useState([]);
     const [isRegisterModalVisible, setRegisterModalVisible] = useState(false);
     const [updateModalVisible, setUpdateModalVisible] = useState(false)
@@ -26,6 +28,7 @@ export default function ManagePackages() {
     const { getAddresses } = useAddresses();
     const { getPackages } = usePackages();
     const { getPackageTracks } = useTracks();
+    const { getDepotById } = useDepots();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -68,6 +71,32 @@ export default function ManagePackages() {
         fetchData();
         setPackageUpdated(false);
     }, [packageUpdated]);
+
+    useEffect(() => {
+        const fetchDepots = async () => {
+            const depotIds = new Set();
+            packages.forEach(pkg => {
+                (pkg.track || []).forEach(t => {
+                    if (t.depot) depotIds.add(t.depot);
+                });
+            });
+
+            const results = await Promise.allSettled(
+                Array.from(depotIds).map(id => getDepotById(id))
+            );
+
+            const map = {};
+            results.forEach((res, idx) => {
+                if (res.status === "fulfilled") {
+                    map[Array.from(depotIds)[idx]] = res.value.data;
+                }
+            });
+
+            setDepotsMap(map);
+        };
+
+        fetchDepots();
+    }, [packages, getDepotById]);
 
 
     useEffect(() => {
@@ -160,6 +189,7 @@ export default function ManagePackages() {
             {auth.role === "admin" && filteredPackages.length > 0 && (
                 <PackageListCard
                     packages={filteredPackages}
+                    depotsMap={depotsMap}
                     onSelectPackage={setSelectedPackage}
                     onUpdatePackage={(pkg) => {
                         setSelectedPackage(pkg);

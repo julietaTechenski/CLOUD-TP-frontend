@@ -1,5 +1,6 @@
-import React from "react";
+import React, {useState} from "react";
 import { Card, List, Button } from "antd";
+import {useDepots} from "../hooks/services/useDepots";
 
 const STATUS_MAP = {
     CREATED: { label: "Created (pending action)", color: "blue" },
@@ -12,10 +13,9 @@ const STATUS_MAP = {
 export default function PackageListCard({
                                             packages,
                                             onSelectPackage,
+                                            depotsMap,
                                             onUpdatePackage,
                                         }) {
-
-    console.log(packages);
     return (
         <Card title="Registered Packages" style={{ maxWidth: 800, margin: "0 auto" }}>
             <List
@@ -34,14 +34,14 @@ export default function PackageListCard({
                                         <p>
                                             Origin: {pkg.origin?.street} {pkg.origin?.number}, {pkg.origin?.city} → Destination: {pkg.destination?.street} {pkg.destination?.number}, {pkg.destination?.city}
                                         </p>
-
                                         {(pkg.track || []).filter(t => t.depot != null).length > 0 && (
                                             <div style={{ marginTop: 8 }}>
                                                 <strong>Tracking History:</strong>
                                                 <ul>
                                                     {(pkg.track || []).filter(t => t.depot != null).map((t, i) => (
                                                         <li key={i}>
-                                                            {t.timestamp} - {t.comment || t.action} ({STATUS_MAP[t.status]?.label || t.status})
+                                                            {t.comment || t.action}
+                                                            {t.depot && depotsMap[t.depot] && ` (Depot: ${depotsMap[t.depot].name})`}
                                                         </li>
                                                     ))}
                                                 </ul>
