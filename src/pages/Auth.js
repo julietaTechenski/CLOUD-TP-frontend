@@ -16,7 +16,7 @@ export default function Auth() {
 
     useEffect(() => {
         if (authenticated) {
-            navigate("/track"); // or your main page
+            navigate("/track");
         }
     }, [authenticated, navigate]);
     const handleSubmit = async (e) => {
@@ -25,7 +25,7 @@ export default function Auth() {
         setIsLoading(true);
 
         if (!isLogin && password !== confirmPassword) {
-            setError("Las contraseñas no coinciden");
+            setError("The passwords do not match");
             setIsLoading(false);
             return;
         }
@@ -40,7 +40,7 @@ export default function Auth() {
                 setTimeout(() => {
                     setSuccessMessage("");
                     setIsLogin(true);
-                }, 2000);
+                }, 1500);
             }
         }catch (err) {
             setError(err?.response?.data?.detail || err.message || String(err));
@@ -88,12 +88,12 @@ export default function Auth() {
                             color: "#1f2937",
                         }}
                     >
-                        {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
+                        {isLogin ? "Log In" : "Create Account"}
                     </h1>
                     <p style={{ color: "#6b7280", fontSize: "14px" }}>
                         {isLogin
-                            ? "Ingresa tu email y contraseña para acceder"
-                            : "Completa los datos para crear tu cuenta"}
+                            ? "Enter your email and password to access"
+                            : "Fill in the data to create your account"}
                     </p>
                 </div>
 
@@ -150,7 +150,7 @@ export default function Auth() {
                     <input
                         id="email"
                         type="email"
-                        placeholder="tu@email.com"
+                        placeholder="your@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -171,7 +171,7 @@ export default function Auth() {
                             htmlFor="password"
                             style={{fontSize: "14px", fontWeight: "500", color: "#374151"}}
                         >
-                            Contraseña
+                            Password
                         </label>
                         <input
                             id="password"
@@ -197,7 +197,7 @@ export default function Auth() {
                                 htmlFor="confirmPassword"
                                 style={{fontSize: "14px", fontWeight: "500", color: "#374151"}}
                             >
-                                Confirmar Contraseña
+                                Confirm Password
                             </label>
                             <input
                                 id="confirmPassword"
@@ -236,11 +236,11 @@ export default function Auth() {
                     >
                         {isLoading
                             ? isLogin
-                                ? "Iniciando sesión..."
-                                : "Creando cuenta..."
+                                ? "Signing in..."
+                                : "Creating account..."
                             : isLogin
-                                ? "Iniciar Sesión"
-                                : "Crear Cuenta"}
+                                ? "Log In"
+                                : "Create Account"}
                     </button>
                 </form>
                 {successMessage && (
@@ -251,7 +251,8 @@ export default function Auth() {
 
                 <div style={{marginTop: "16px", textAlign: "center"}}>
                     <p style={{fontSize: "14px", color: "#6b7280"}}>
-                        {isLogin ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
+                        {isLogin ? "Don't you have an account?": "Have you already got an account? "}
+
                         <button
                             type="button"
                             onClick={toggleMode}
@@ -264,7 +265,7 @@ export default function Auth() {
                                 fontSize: "14px",
                             }}
                         >
-                            {isLogin ? "Crear cuenta" : "Iniciar sesión"}
+                            {isLogin ? "Create Account" : "Log In"}
                         </button>
                     </p>
                 </div>
