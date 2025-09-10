@@ -15,4 +15,16 @@ export const usePackages = () => ({
 
     getPackageById: (code) => api.get(`/packages/${code}/`),
 
+    uploadPackageImage: (code, file) => {
+        const formData = new FormData();
+        formData.append("purpose", "CREATION");
+        formData.append("image", file);
+
+        return api.post(`/packages/${code}/images/`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+    }
+
 });

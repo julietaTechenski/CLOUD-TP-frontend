@@ -1,13 +1,13 @@
 import React from "react";
-import {Form, Input, Button, Card, Row, Col, message} from "antd";
-import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined} from "@ant-design/icons";
+import {Form, Input, Button, Card, Row, Col, message, Upload} from "antd";
+import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined, UploadOutlined} from "@ant-design/icons";
 import api from "../../lib/axios";
 import {useAddresses} from "../../hooks/services/useAddresses";
 import {usePackages} from "../../hooks/services/usePackages";
 
 export function RegisterPackageForm({ onSubmit }) {
     const [form] = Form.useForm();
-    const { createPackage } = usePackages(api);
+    const { createPackage, uploadPackageImage } = usePackages();
     const { createAddress } = useAddresses(api);
 
     const handleFinish = async (values) => {
@@ -25,6 +25,10 @@ export function RegisterPackageForm({ onSubmit }) {
                 weight: values.weight,
                 email: values.email,
             });
+
+            const file = values.image[0].originFileObj;
+            await uploadPackageImage(pkg.data.code, file);
+            console.log(file);
 
             form.resetFields();
             if (onSubmit) onSubmit(pkg.data, () => form.resetFields());
@@ -96,6 +100,28 @@ export function RegisterPackageForm({ onSubmit }) {
                             rules={[{ required: true, message: "Please enter the package weight" }]}
                         >
                             <Input placeholder="e.g. 2.5 kg" />
+                        </Form.Item>
+                    </Col>
+                </Row>
+
+                {/* Upload image */}
+                <Row gutter={16}>
+                    <Col span={24}>
+                        <Form.Item
+                            label="Package Image"
+                            name="image"
+                            valuePropName="fileList"
+                            getValueFromEvent={(e) => (Array.isArray(e) ? e : e && e.fileList)}
+                            extra="Upload an image of the package (optional)"
+                        >
+                            <Upload
+                                name="image"
+                                listType="picture"
+                                beforeUpload={() => false}
+                                maxCount={1}
+                            >
+                                <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                            </Upload>
                         </Form.Item>
                     </Col>
                 </Row>
