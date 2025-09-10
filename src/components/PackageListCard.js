@@ -25,8 +25,7 @@ export default function PackageListCard({
                         style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
                     >
                         <div
-                            onClick={() => onSelectPackage(pkg)}
-                            style={{ cursor: "pointer", flex: 1 }}
+                            style={{ cursor: "default", flex: 1 }}
                         >
                             <List.Item.Meta
                                 title={`Package Code: ${pkg.code} | State: ${STATUS_MAP[pkg.state]?.label || pkg.state || "Pending"}`}
