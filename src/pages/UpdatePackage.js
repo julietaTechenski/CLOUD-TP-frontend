@@ -3,7 +3,6 @@ import {Modal, Button, Card, Select, Typography, Divider} from "antd"
 import {EnvironmentOutlined, CheckCircleTwoTone} from "@ant-design/icons"
 import {useTracks} from "../hooks/services/useTracks";
 import {useDepots} from "../hooks/services/useDepots";
-import {useAddresses} from "../hooks/services/useAddresses";
 
 const {Text} = Typography
 
@@ -14,30 +13,33 @@ const actions = Object.freeze({
     arrivedDepot: "ARRIVED_DEPOT", // arrived-at
     sentToFinal: "SEND_FINAL", // send-to
     arrivedFinal: "ARRIVED_FINAL", // update botton should not be shown
-    cancelled: "CANCEL", // update botton should not be shown
+    cancel: "CANCEL", // update botton should not be shown
 });
 
-export default function UpdatePackageModal({onClose, packageData}) {
-    const [modalState, setModalState] = useState("send-to");
+export default function UpdatePackageModal({onClose, packageData, setPackageUpdated}) {
+    const [modalState, setModalState] = useState("");
     const [lastLocation, setLastLocation] = useState([]);
     const [lastDepotName, setLastDepotName] = useState("")
 
 
+
     const { getLatestPackageTrack } = useTracks();
     const { getDepots, getDepotById } = useDepots();
-    const { getAddress } = useAddresses();
 
     const { postPackageTrack } = useTracks();
+
+    const [currentActionIsCancel, setCurrentActionIsCancel] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const warehouses = await getDepots();
                 const lastTrack = await getLatestPackageTrack(packageData.code);
-                console.log("LAST_TRACK",lastTrack);
-                const depot = await getDepotById(lastTrack.data.depot);
-
-                console.log("DEPOT:", depot)
+                if ((lastTrack.data.action === actions.sentToDepot ||
+                    lastTrack.data.action === actions.arrivedDepot) && !currentActionIsCancel ) {
+                    const depot = await getDepotById(lastTrack.data.depot);
+                    setLastDepotName(depot.data.name);
+                }
                 setModalState(
                     lastTrack.data.action === actions.arrivedDepot || lastTrack.data.action === actions.create
                         ? "arrived-at"
@@ -46,14 +48,15 @@ export default function UpdatePackageModal({onClose, packageData}) {
 
                 setLastLocation(lastTrack.data);
                 setDepots(warehouses.data);
-                setLastDepotName(depot.data.name);
+
 
             } catch (err) {
                 console.error(err);
             }
         };
         fetchData();
-    }, [getAddress, getDepotById, getDepots, getLatestPackageTrack, packageData, packageData.code]);
+
+    }, [currentActionIsCancel, getDepotById, getDepots, getLatestPackageTrack, packageData, packageData.code]);
 
     const [destinationType, setDestinationType] = useState("")
     const [selectedDepot, setSelectedDepot] = useState("")
@@ -69,33 +72,54 @@ export default function UpdatePackageModal({onClose, packageData}) {
             destinationType,
             selectedDepot,
         })
-        postPackageTrack(packageData.code, {
-            action: destinationType === "depot" ?  actions.sentToDepot : actions.sentToFinal,
-            comment: "Package sent to " + (destinationType === "depot" ? "depot " + selectedDepot : "final destination"),
-        })
+
+        if (destinationType === "depot") {
+            postPackageTrack(packageData.code, {
+                action: actions.sentToDepot,
+                depot: selectedDepot,
+                comment: "Package sent to depot",
+            })
+        } else if (destinationType === "final") {
+            postPackageTrack(packageData.code, {
+                action: actions.sentToFinal,
+                comment: "Package sent to final destination",
+            })
+        }
+
+        setPackageUpdated(true)
         onClose()
         resetForm()
     }
 
     const handleConfirmShipment = () => {
+        if(lastLocation.action === actions.sentToFinal) {
+            postPackageTrack(packageData.code, {
+                action: actions.arrivedFinal,
+                comment: "Package has arrived at final destination",
+            })
+        } else if (lastLocation.action === actions.sentToDepot) {
+            postPackageTrack(packageData.code, {
+                action: actions.arrivedDepot,
+                depot: lastLocation.depot,
+                comment: "Package has arrived at depot"
+            })
+        }
 
-        postPackageTrack(packageData.code, {
-            action: lastLocation.action === actions.sentToFinal ? actions.arrivedFinal : actions.arrivedDepot,
-            depot: lastLocation.action === actions.sentToFinal ? null : lastLocation.id,
-            comment: "Package has arrived at " + (lastLocation.action === actions.sentToFinal ? "final destination" : "depot " + lastLocation.name),
-        })
         console.log("Confirming shipment")
+        setPackageUpdated(true)
         onClose()
         resetForm()
     }
 
     const handleCancelShipment = () => {
         postPackageTrack(packageData.code, {
-            action: actions.cancelled,
+            action: actions.cancel,
             depot:  null,
             comment: "Shipment cancelled, package is being returned to sender.",
         })
         console.log("Cancelling shipment")
+        setPackageUpdated(true)
+        setCurrentActionIsCancel(true)
         onClose()
         resetForm()
     }
@@ -128,7 +152,7 @@ export default function UpdatePackageModal({onClose, packageData}) {
                         <div>
                             <div style={{display: "flex", alignItems: "center", gap: 8}}>
                                 <EnvironmentOutlined style={{fontSize: 18, color: "#1890ff"}}/>
-                                <Text strong>Package on the way to: {lastDepotName}</Text>
+                                <Text strong>Package on the way to: { lastLocation.action === actions.sentToDepot ? lastDepotName : `${packageData.destination.street}, ${packageData.destination.city}`}</Text>
                             </div>
                             <Text
                                 type="secondary">Final destination: {packageData.destination?.street}, {packageData.destination?.city}</Text>
@@ -199,10 +223,10 @@ export default function UpdatePackageModal({onClose, packageData}) {
         {/* Estado arrived-at */}
         {modalState === "arrived-at" && (
             <>
-                <Card title="Package has arrived at one of our warehouses" style={{marginBottom: 16}}>
+                <Card title={actions.create === lastLocation.action ? "Package is ready to be sent": "Package has arrived at one of our warehouses"} style={{marginBottom: 16}}>
                     <div style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 16}}>
                         <CheckCircleTwoTone twoToneColor="#52c41a" style={{fontSize: 20}}/>
-                        Arrived at: {lastLocation.name || "One of our depots"}
+                        {lastLocation.action === actions.create ? "Package at origin location" : `Arrived at: ${lastDepotName}`}
                     </div>
 
                     <div style={{marginBottom: 12}}>

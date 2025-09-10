@@ -20,6 +20,8 @@ export default function ManagePackages() {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
 
+    const [packageUpdated, setPackageUpdated] = useState(false);
+
 
     const { getAddresses } = useAddresses();
     const { getPackages } = usePackages();
@@ -64,7 +66,8 @@ export default function ManagePackages() {
         };
 
         fetchData();
-    }, []);
+        setPackageUpdated(false);
+    }, [packageUpdated]);
 
 
     useEffect(() => {
@@ -197,6 +200,7 @@ export default function ManagePackages() {
                             setSelectedPackage(null);
                         }}
                         packageData={selectedPackage}
+                        setPackageUpdated={setPackageUpdated}
                     />
                 )}
             </Modal>
