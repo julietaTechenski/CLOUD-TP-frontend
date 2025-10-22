@@ -1,6 +1,6 @@
 import { useAuth } from "../hooks/services/useAuth";
 import React, {useEffect, useState} from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Auth() {
     const {authenticated, handleLogin, handleRegister ,setUserDetails} = useAuth();
@@ -13,12 +13,30 @@ export default function Auth() {
     const [isLoading, setIsLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         if (authenticated) {
             navigate("/track");
         }
     }, [authenticated, navigate]);
+
+    useEffect(() => {
+        // Verificar si hay un mensaje de éxito desde la página de verificación
+        const message = location.state?.message;
+        if (message) {
+            setSuccessMessage(message);
+            // Pre-llenar el email si viene de la verificación
+            const emailFromState = location.state?.email;
+            if (emailFromState) {
+                setEmail(emailFromState);
+            }
+            // Limpiar el estado después de mostrar el mensaje
+            setTimeout(() => {
+                setSuccessMessage("");
+            }, 5000);
+        }
+    }, [location.state]);
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -35,12 +53,12 @@ export default function Auth() {
                 await handleLogin(email, password);
                 await setUserDetails();
             } else {
-                await handleRegister(username,email, password);
-                setSuccessMessage("Account created successfully!");
-                setTimeout(() => {
-                    setSuccessMessage("");
-                    setIsLogin(true);
-                }, 1500);
+                await handleRegister(username, email, password);
+                // Redirigir a la página de verificación con el email
+                navigate("/verify", { 
+                    state: { email: email },
+                    replace: true 
+                });
             }
         }catch (err) {
             setError(err?.response?.data?.detail || err.message || String(err));

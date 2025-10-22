@@ -19,6 +19,7 @@ const getInitialState = () => ({
     handleTokensRefresh: () => {},
     refreshTokens: () => Promise.resolve(false),
     handleRegister: () => Promise.resolve(false),
+    handleConfirmCode: () => Promise.resolve(false),
     setUserDetails: () => Promise.resolve(false),
 });
 

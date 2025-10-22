@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { AuthContext } from "./authContext";
-import { signIn, signUp, signOut, fetchAuthSession } from '@aws-amplify/auth';
+import { signIn, signUp, signOut, confirmSignUp, fetchAuthSession } from '@aws-amplify/auth';
 import { 
     getAmplifyAccessToken, 
     getAmplifyIdToken, 
@@ -149,47 +149,51 @@ export const AuthContextProvider = ({ children }) => {
     const handleLogin = useCallback(async (email, password) => {
         setAuth((prev) => ({ ...prev, loading: true }));
         try {
-            const userSession = await signIn({
+            const { isSignedIn, nextStep } = await signIn({
                 username: email,
                 password: password
             });
 
-            // Amplify automatically stores tokens in localStorage, so we just need to extract them
-            const accessToken = getAmplifyAccessToken();
-            const idToken = getAmplifyIdToken();
+            if (isSignedIn) {
+                // Amplify automatically stores tokens in localStorage, so we just need to extract them
+                const accessToken = getAmplifyAccessToken();
+                const idToken = getAmplifyIdToken();
 
-            if (!accessToken || !idToken) {
-                throw new Error("Failed to retrieve tokens after login");
+                if (!accessToken || !idToken) {
+                    throw new Error("Failed to retrieve tokens after login");
+                }
+
+                const claims = parseJwt(idToken);
+
+                const userId = claims.sub; // cognito user ID
+                const userRole = claims['custom:role'] || 'user';
+                const userEmail = claims.email;
+                const firstName = claims.given_name;
+                const lastName = claims.family_name;
+
+                // Store user info in sessionStorage for backward compatibility
+                sessionStorage.setItem("userId", userId);
+                sessionStorage.setItem("role", userRole);
+                sessionStorage.setItem("email", userEmail);
+                if (firstName) sessionStorage.setItem("firstName", firstName);
+                if (lastName) sessionStorage.setItem("lastName", lastName);
+
+                setAuth({
+                    authenticated: true,
+                    accessToken: accessToken,
+                    refreshToken: undefined, // We'll get this from Amplify when needed
+                    userId: userId,
+                    role: userRole,
+                    email: userEmail,
+                    firstName: firstName,
+                    lastName: lastName,
+                    loading: false,
+                });
+
+                return true;
+            } else {
+                throw new Error("Authentication failed");
             }
-
-            const claims = parseJwt(idToken);
-
-            const userId = claims.sub; // cognito user ID
-            const userRole = claims['custom:role'] || 'user';
-            const userEmail = claims.email;
-            const firstName = claims.given_name;
-            const lastName = claims.family_name;
-
-            // Store user info in sessionStorage for backward compatibility
-            sessionStorage.setItem("userId", userId);
-            sessionStorage.setItem("role", userRole);
-            sessionStorage.setItem("email", userEmail);
-            if (firstName) sessionStorage.setItem("firstName", firstName);
-            if (lastName) sessionStorage.setItem("lastName", lastName);
-
-            setAuth({
-                authenticated: true,
-                accessToken: accessToken,
-                refreshToken: undefined, // We'll get this from Amplify when needed
-                userId: userId,
-                role: userRole,
-                email: userEmail,
-                firstName: firstName,
-                lastName: lastName,
-                loading: false,
-            });
-
-            return true;
         } catch (err) {
             setAuth((prev) => ({ ...prev, loading: false }));
             
@@ -216,11 +220,13 @@ export const AuthContextProvider = ({ children }) => {
 
     const handleRegister = useCallback(async (username, email, password) => {
         try {
-            await signUp({
+            const { isSignUpComplete, userId, nextStep } = await signUp({
                 username: email,
                 password: password,
-                attributes: {
-                    email: email,
+                options: {
+                    userAttributes: {
+                        email: email,
+                    }
                 }
             });
             return true;
@@ -246,6 +252,19 @@ export const AuthContextProvider = ({ children }) => {
         }
     }, []);
 
+    const handleConfirmCode = useCallback(async (email, code) => {
+        try {
+            await confirmSignUp({
+                username: email,
+                confirmationCode: code
+            });
+            return true;
+        } catch (err) {
+            console.error("Error al confirmar código:", err);
+            throw err.message || "Code verification failed";
+        }
+    }, []);
+
     const handleTokensRefresh = useCallback((accessToken, refreshToken) => {
         sessionStorage.setItem("access_token", accessToken);
         sessionStorage.setItem("refresh_token", refreshToken);
@@ -265,6 +284,7 @@ export const AuthContextProvider = ({ children }) => {
                 handleTokensRefresh,
                 refreshTokens,
                 handleRegister,
+                handleConfirmCode,
             }}
         >
             {children}

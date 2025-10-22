@@ -2,6 +2,7 @@ import {Routes, Route, BrowserRouter} from "react-router-dom";
 import Home from "./pages/Home";
 import Test from "./pages/Test";
 import Auth from "./pages/Auth";
+import VerifyCode from "./pages/VerifyCode";
 import TrackPackage from "./pages/TrackPackage";
 import AppLayout from "./components/AppLayout";
 import ManagePackages from "./pages/ManagePackages";
@@ -16,6 +17,7 @@ function App() {
                     <Route path="packages" element={<ManagePackages />} />
                     <Route path="track" element={<TrackPackage />} />
                     <Route path="auth" element={<Auth />} />
+                    <Route path="verify" element={<VerifyCode />} />
                 </Route>
             </Routes>
         </BrowserRouter>
