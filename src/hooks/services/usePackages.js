@@ -13,7 +13,7 @@ export const usePackages = () => ({
     },
     getPackages: () => api.get("/packages/"),
 
-    getPackageById: (code) => api.get(`/packages/${code}/`),
+    getPackageById: (code) => api.get(`/packages/${code}`),
 
     uploadPackageImage: (code, file) => {
         const formData = new FormData();
