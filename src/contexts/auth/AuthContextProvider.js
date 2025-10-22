@@ -1,6 +1,15 @@
-import React, {useCallback, useState} from "react";
+import React, { useCallback, useState } from "react";
 import { AuthContext } from "./authContext";
-import api from "../../lib/axios";
+
+import { signIn, signUp, signOut } from '@aws-amplify/auth';
+
+function parseJwt(token) {
+    try {
+        return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+        return null;
+    }
+}
 
 export const AuthContextProvider = ({ children }) => {
     const [auth, setAuth] = useState({
@@ -9,56 +18,97 @@ export const AuthContextProvider = ({ children }) => {
         userId: sessionStorage.getItem("userId") || undefined,
         role: sessionStorage.getItem("role") || undefined,
         email: sessionStorage.getItem("email") || undefined,
-        firstName: sessionStorage.getItem("firstName") || undefined,
-        lastName: sessionStorage.getItem("lastName") || undefined,
+        firstName: sessionStorage.getItem("firstName") || undefined, // Cognito no da esto por defecto
+        lastName: sessionStorage.getItem("lastName") || undefined,  // Cognito no da esto por defecto
         loading: false,
     });
 
-    const handleLogin = useCallback( async(email,password ) => {
+    const handleLogin = useCallback(async (email, password) => {
         setAuth((prev) => ({ ...prev, loading: true }));
         try {
-            const res =await  api.post("/auth/token", {email, password });
-            const { access, refresh, userId, role } = res.data;
-            sessionStorage.setItem("access_token", access);
-            sessionStorage.setItem("refresh_token", refresh);
+            const userSession = await signIn({
+                username: email,
+                password: password
+            });
+
+            const accessToken = userSession.getAccessToken().getJwtToken();
+            const idToken = userSession.getIdToken().getJwtToken();
+            const refreshToken = userSession.getRefreshToken().getToken();
+
+            const claims = parseJwt(idToken);
+
+            const userId = claims.sub; // cogito user ID
+            const userRole = claims['custom:role'] || 'user';
+            const userEmail = claims.email;
+
+            sessionStorage.setItem("access_token", accessToken);
+            sessionStorage.setItem("refresh_token", refreshToken);
+            sessionStorage.setItem("userId", userId);
+            sessionStorage.setItem("role", userRole);
+            sessionStorage.setItem("email", userEmail);
+
             setAuth({
                 authenticated: true,
-                accessToken: access,
-                refreshToken: refresh,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                userId: userId,
+                role: userRole,
+                email: userEmail,
                 loading: false,
             });
 
             return true;
         } catch (err) {
             setAuth((prev) => ({ ...prev, loading: false }));
-            throw err.response?.data?.detail || "Login failed";
+            throw err.message || "Login failed";
         }
-    },[]);
+    }, []);
 
-    const handleRegister = useCallback (async (username,email,password)  => {
-        console.log("Payload que voy a enviar:", { username, email, password });
+    const handleRegister = useCallback(async (username, email, password) => {
         try {
-            const response = await api.post("/auth/register", { username, email, password });
+            await signUp({
+                username: email,
+                password: password,
+                attributes: {
+                    email: email,
+                }
+            });
             return true;
         } catch (err) {
-            console.error("Error al registrar:", err.response?.data);
-            throw err.response?.data?.detail || "Registration failed";
+            console.error("Error al registrar:", err);
+            throw err.message || "Registration failed";
         }
-    },[]);
+    }, []);
 
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            await signOut();
+        } catch (error) {
+            console.error("Error en signOut: ", error);
+        }
+
         sessionStorage.removeItem("access_token");
         sessionStorage.removeItem("refresh_token");
+        sessionStorage.removeItem("userId");
+        sessionStorage.removeItem("role");
+        sessionStorage.removeItem("email");
+        sessionStorage.removeItem("firstName");
+        sessionStorage.removeItem("lastName");
+
         setAuth({
             authenticated: false,
             accessToken: undefined,
             refreshToken: undefined,
             userId: undefined,
             role: undefined,
+            email: undefined,
+            firstName: undefined,
+            lastName: undefined,
             loading: false,
         });
     };
+
 
     const handleTokensRefresh = useCallback((  accessToken, refreshToken ) => {
         sessionStorage.setItem("access_token", accessToken);
@@ -70,31 +120,6 @@ export const AuthContextProvider = ({ children }) => {
         }));
     }, []);
 
-    const setUserDetails = useCallback(async () => {
-        try {
-            const res = await api.get("/auth/me");
-            const { id, role, email, first_name, last_name } = res.data;
-            sessionStorage.setItem("userId", id);
-            sessionStorage.setItem("role", role);
-            sessionStorage.setItem("email", email);
-            sessionStorage.setItem("firstName", first_name);
-            sessionStorage.setItem("lastName", last_name);
-            setAuth((prev) => ({
-                ...prev,
-                userId: id,
-                role,
-                email,
-                firstName: first_name,
-                lastName: last_name,
-                loading: false,
-            }));
-        } catch (err) {
-            console.error("Error fetching user details:", err);
-            setAuth((prev) => ({ ...prev, loading: false }));
-        }
-    }, []);
-
-
     return (
         <AuthContext.Provider
             value={{
@@ -103,7 +128,6 @@ export const AuthContextProvider = ({ children }) => {
                 handleLogout,
                 handleTokensRefresh,
                 handleRegister,
-                setUserDetails,
             }}
         >
             {children}
