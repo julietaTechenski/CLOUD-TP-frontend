@@ -145,7 +145,7 @@ export default function TrackPackage() {
                 const isCompleted = !isLast || track.action === "ARRIVED_FINAL"
                 where = 7
                 return {
-                    id: (track.id || track.track_id || index).toString(),
+                    id: (track.track_id || track.track_id || index).toString(),
                     title: actionDetails.title,
                     description: track.comment || actionDetails.description,
                     date: formatDate(track.timestamp),

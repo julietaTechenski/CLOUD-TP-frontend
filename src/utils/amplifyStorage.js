@@ -132,3 +132,27 @@ export const isTokenExpired = (token) => {
         return true;
     }
 };
+
+/**
+ * Get the user role from the current authenticated user
+ * @returns {string|null} The user role or null if not found
+ */
+export const getUserRole = () => {
+    // Primero intentar obtener el rol desde sessionStorage (más rápido)
+    const roleFromSession = sessionStorage.getItem("role");
+    if (roleFromSession) {
+        return roleFromSession;
+    }
+    
+    // Si no está en sessionStorage, extraer del token JWT
+    const idToken = getAmplifyIdToken();
+    if (idToken) {
+        const claims = parseJwt(idToken);
+        if (claims && claims['custom:role']) {
+            return claims['custom:role'];
+        }
+    }
+    
+    // Si no se encuentra, retornar 'user' como default
+    return 'user';
+};

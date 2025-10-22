@@ -37,8 +37,9 @@ export default function ManagePackages() {
                 const packagesRes = await getPackages();
 
                 const addressesMap = {};
+                
                 addressesRes.data.forEach((addr) => {
-                    addressesMap[addr.id] = addr;
+                    addressesMap[addr.address_id] = addr;
                 });
 
                 let packagesWithAddresses = packagesRes.data.map((pkg) => ({
@@ -122,7 +123,7 @@ export default function ManagePackages() {
         message.success(`Package ${pkg.code} registered!`);
     };
 
-    const userPackages = packages.filter(pkg => String(pkg.sender) === String(auth.userId));
+    const userPackages = packages.filter(pkg => String(pkg.sender_id) === String(auth.userId));
 
     return (
         <div style={{ padding: "2rem" }}>
@@ -151,7 +152,7 @@ export default function ManagePackages() {
                         >
                             <ul>
                                 {userPackages.map((pkg) => (
-                                    <li key={pkg.id} style={{ marginBottom: "0.5rem" }}>
+                                    <li key={pkg.package_id} style={{ marginBottom: "0.5rem" }}>
                                         <strong>Code:</strong> {pkg.code} | <strong>Status:</strong> {pkg.state}
                                     </li>
                                 ))}

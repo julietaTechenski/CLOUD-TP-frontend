@@ -8,9 +8,9 @@ export const usePackages = () => ({
                 return Promise.reject(new Error(`Field "${field}" is required`));
             }
         }
-        return api.post("/packages/", data);
+        return api.post("/packages", data);
     },
-    getPackages: () => api.get("/packages/"),
+    getPackages: () => api.get("/packages"),
 
     getPackageById: (code) => api.get(`/packages/${code}`),
 

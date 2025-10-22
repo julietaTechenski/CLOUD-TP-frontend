@@ -252,7 +252,7 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
                                 onChange={setSelectedDepot}
                             >
                                 {depots.map((depot) => (
-                                    <Select.Option key={depot.id} value={depot.id}>
+                                    <Select.Option key={depot.depot_id} value={depot.depot_id}>
                                         {depot.name}
                                     </Select.Option>
                                 ))}
