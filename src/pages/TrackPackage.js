@@ -95,6 +95,7 @@ export default function TrackPackage() {
         setError("")
 
         try {
+            var where = 0
             const packageResponse = await getPackageById(trackingNumber);
 
             if (!packageResponse) {
@@ -103,24 +104,24 @@ export default function TrackPackage() {
                 }
                 throw new Error("Error fetching the package")
             }
-
+            where = 1
             const packageInfo =  packageResponse.data
-
+            where = 2
             const tracksResponse = await getPackageTracks(trackingNumber);
-
+            where = 3
             const tracks = tracksResponse.data
-
+            where = 4
             const originResponse= await getAddress(packageInfo.origin);
             const  destinationResponse = await getAddress(packageInfo.destination);
-
+            where = 5
             const origin = originResponse.data
             const destination = destinationResponse.data
-
+            where = 6
             const steps = tracks.map((track, index) => {
                 const actionDetails = getActionDetails(track.action)
                 const isLast = index === tracks.length - 1
                 const isCompleted = !isLast || track.action === "ARRIVED_FINAL"
-
+                where = 7
                 return {
                     id: track.id.toString(),
                     title: actionDetails.title,
@@ -140,7 +141,7 @@ export default function TrackPackage() {
             const lastTrack = tracks[tracks.length - 1]
             const estimatedDelivery = new Date(lastTrack.timestamp)
             estimatedDelivery.setDate(estimatedDelivery.getDate() + 3)
-
+            where = 8
             const processedPackageData = {
                 trackingNumber: packageInfo.code,
                 status: mapPackageState(packageInfo.state),
@@ -153,10 +154,10 @@ export default function TrackPackage() {
                 createdAt: formatDate(packageInfo.created_at),
                 steps: steps.reverse(),
             }
-
+            where = 9
             setPackageData(processedPackageData)
         } catch (err) {
-            console.error("Error fetching package data:", err)
+            console.error(`Error fetching package data: ${where}`, err)
             setError(err instanceof Error ? err.message : "Error fetching the package")
             setPackageData(null)
         } finally {
