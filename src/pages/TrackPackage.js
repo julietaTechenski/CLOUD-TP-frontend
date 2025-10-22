@@ -95,7 +95,6 @@ export default function TrackPackage() {
         setError("")
 
         try {
-            var where = 0
             const packageResponse = await getPackageById(trackingNumber);
 
             if (!packageResponse) {
@@ -104,46 +103,22 @@ export default function TrackPackage() {
                 }
                 throw new Error("Error fetching the package")
             }
-            where = 1
             const packageInfo =  packageResponse.data
-            where = 2
             const tracksResponse = await getPackageTracks(trackingNumber);
-            where = 3
-            let tracks = tracksResponse.data
             
-            // Handle case where data is a stringified array (Python-style)
-            if (typeof tracks === 'string') {
-                try {
-                    // Clean Python-style data to valid JSON
-                    let cleanedTracks = tracks
-                        .replace(/'/g, '"')  
-                        .replace(/None/g, 'null')  
-                        .replace(/True/g, 'true')  
-                        .replace(/False/g, 'false')  
-                    
-                    tracks = JSON.parse(cleanedTracks)
-                } catch (e) {
-                    console.error('Failed to parse tracks data:', e)
-                    console.log('Original data:', tracks)
-                    tracks = []
-                }
-            }
+            let tracks = tracksResponse.data
             
             // Ensure tracks is always an array
             tracks = Array.isArray(tracks) ? tracks : (tracks ? [tracks] : [])
             console.log('Tracks data:', tracks)
-            where = 4
             const originResponse= await getAddress(packageInfo.origin);
             const  destinationResponse = await getAddress(packageInfo.destination);
-            where = 5
             const origin = originResponse.data
             const destination = destinationResponse.data
-            where = 6
             const steps = tracks && tracks.length > 0 ? tracks.map((track, index) => {
                 const actionDetails = getActionDetails(track.action)
                 const isLast = index === tracks.length - 1
                 const isCompleted = !isLast || track.action === "ARRIVED_FINAL"
-                where = 7
                 return {
                     id: (track.track_id || track.track_id || index).toString(),
                     title: actionDetails.title,
@@ -165,7 +140,6 @@ export default function TrackPackage() {
             if (lastTrack) {
                 estimatedDelivery.setDate(estimatedDelivery.getDate() + 3)
             }
-            where = 8
             const processedPackageData = {
                 trackingNumber: packageInfo.code,
                 status: mapPackageState(packageInfo.state),
@@ -178,10 +152,9 @@ export default function TrackPackage() {
                 createdAt: formatDate(packageInfo.created_at),
                 steps: steps.reverse(),
             }
-            where = 9
             setPackageData(processedPackageData)
         } catch (err) {
-            console.error(`Error fetching package data: ${where}`, err)
+            console.error(`Error fetching package data`, err)
             setError(err instanceof Error ? err.message : "Error fetching the package")
             setPackageData(null)
         } finally {
