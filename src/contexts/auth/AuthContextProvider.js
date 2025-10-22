@@ -13,8 +13,8 @@ function parseJwt(token) {
 
 export const AuthContextProvider = ({ children }) => {
     const [auth, setAuth] = useState({
-        authenticated: !!sessionStorage.getItem("access_token"),
-        accessToken: sessionStorage.getItem("access_token") || undefined,
+        authenticated: !!sessionStorage.getItem("access-token"),
+        accessToken: sessionStorage.getItem("access-token") || undefined,
         userId: sessionStorage.getItem("userId") || undefined,
         role: sessionStorage.getItem("role") || undefined,
         email: sessionStorage.getItem("email") || undefined,
@@ -26,38 +26,46 @@ export const AuthContextProvider = ({ children }) => {
     const handleLogin = useCallback(async (email, password) => {
         setAuth((prev) => ({ ...prev, loading: true }));
         try {
-            const userSession = await signIn({
+            const { isSignedIn, nextStep } = await signIn({
                 username: email,
                 password: password
             });
 
-            const accessToken = userSession.getAccessToken().getJwtToken();
-            const idToken = userSession.getIdToken().getJwtToken();
-            const refreshToken = userSession.getRefreshToken().getToken();
+            if (isSignedIn) {
+                // Get the current user session
+                const { getCurrentUser } = await import('aws-amplify/auth');
+                const { tokens } = await getCurrentUser();
 
-            const claims = parseJwt(idToken);
+                const accessToken = tokens.accessToken.toString();
+                const idToken = tokens.idToken.toString();
+                const refreshToken = tokens.refreshToken.toString();
 
-            const userId = claims.sub; // cogito user ID
-            const userRole = claims['custom:role'] || 'user';
-            const userEmail = claims.email;
+                const claims = parseJwt(idToken);
 
-            sessionStorage.setItem("access_token", accessToken);
-            sessionStorage.setItem("refresh_token", refreshToken);
-            sessionStorage.setItem("userId", userId);
-            sessionStorage.setItem("role", userRole);
-            sessionStorage.setItem("email", userEmail);
+                const userId = claims.sub; // cognito user ID
+                const userRole = claims['custom:role'] || 'user';
+                const userEmail = claims.email;
 
-            setAuth({
-                authenticated: true,
-                accessToken: accessToken,
-                refreshToken: refreshToken,
-                userId: userId,
-                role: userRole,
-                email: userEmail,
-                loading: false,
-            });
+                sessionStorage.setItem("access-token", accessToken);
+                sessionStorage.setItem("refresh-token", refreshToken);
+                sessionStorage.setItem("userId", userId);
+                sessionStorage.setItem("role", userRole);
+                sessionStorage.setItem("email", userEmail);
 
-            return true;
+                setAuth({
+                    authenticated: true,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken,
+                    userId: userId,
+                    role: userRole,
+                    email: userEmail,
+                    loading: false,
+                });
+
+                return true;
+            } else {
+                throw new Error("Authentication failed");
+            }
         } catch (err) {
             setAuth((prev) => ({ ...prev, loading: false }));
             throw err.message || "Login failed";
@@ -66,11 +74,13 @@ export const AuthContextProvider = ({ children }) => {
 
     const handleRegister = useCallback(async (username, email, password) => {
         try {
-            await signUp({
+            const { isSignUpComplete, userId, nextStep } = await signUp({
                 username: email,
                 password: password,
-                attributes: {
-                    email: email,
+                options: {
+                    userAttributes: {
+                        email: email,
+                    }
                 }
             });
             return true;
@@ -101,8 +111,8 @@ export const AuthContextProvider = ({ children }) => {
             console.error("Error en signOut: ", error);
         }
 
-        sessionStorage.removeItem("access_token");
-        sessionStorage.removeItem("refresh_token");
+        sessionStorage.removeItem("access-token");
+        sessionStorage.removeItem("refresh-token");
         sessionStorage.removeItem("userId");
         sessionStorage.removeItem("role");
         sessionStorage.removeItem("email");
@@ -124,8 +134,8 @@ export const AuthContextProvider = ({ children }) => {
 
 
     const handleTokensRefresh = useCallback((  accessToken, refreshToken ) => {
-        sessionStorage.setItem("access_token", accessToken);
-        sessionStorage.setItem("refresh_token", refreshToken);
+        sessionStorage.setItem("access-token", accessToken);
+        sessionStorage.setItem("refresh-token", refreshToken);
         setAuth((prev) => ({
             ...prev,
             accessToken,
