@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getAmplifyAccessToken, clearAmplifyStorage } from "../utils/amplifyStorage";
+import { getAmplifyAccessToken, clearAmplifyStorage , getAmplifyIdToken} from "../utils/amplifyStorage";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -29,7 +29,7 @@ const processQueue = (error, token = null) => {
 // Request interceptor to add Authorization header using Amplify tokens
 api.interceptors.request.use(
     (config) => {
-        const token = getAmplifyAccessToken();
+        const token = getAmplifyIdToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
