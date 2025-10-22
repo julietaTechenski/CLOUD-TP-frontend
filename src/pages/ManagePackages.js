@@ -186,7 +186,7 @@ export default function ManagePackages() {
             )}
 
             {/* Packages list */}
-            {auth.role === "admin" && filteredPackages.length > 0 && (
+            {auth.role !== "admin" && filteredPackages.length > 0 && (
                 <PackageListCard
                     packages={filteredPackages}
                     depotsMap={depotsMap}
