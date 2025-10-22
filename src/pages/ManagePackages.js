@@ -126,7 +126,7 @@ export default function ManagePackages() {
 
     return (
         <div style={{ padding: "2rem" }}>
-            {auth.role === "user" && (
+            {auth.role !== "admin" && (
             <Card
                 title="Packages Management"
                 style={{ maxWidth: 800, margin: "0 auto 2rem auto" }}
@@ -142,7 +142,7 @@ export default function ManagePackages() {
             )}
 
             {/* Packages list for current user */}
-            {auth.role === "user" && (() => {
+            {auth.role !== "admin" && (() => {
                 if (userPackages.length > 0) {
                     return (
                         <Card
