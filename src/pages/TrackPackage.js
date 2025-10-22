@@ -109,7 +109,29 @@ export default function TrackPackage() {
             where = 2
             const tracksResponse = await getPackageTracks(trackingNumber);
             where = 3
-            const tracks = tracksResponse.data
+            let tracks = tracksResponse.data
+            
+            // Handle case where data is a stringified array (Python-style)
+            if (typeof tracks === 'string') {
+                try {
+                    // Clean Python-style data to valid JSON
+                    let cleanedTracks = tracks
+                        .replace(/'/g, '"')  
+                        .replace(/None/g, 'null')  
+                        .replace(/True/g, 'true')  
+                        .replace(/False/g, 'false')  
+                    
+                    tracks = JSON.parse(cleanedTracks)
+                } catch (e) {
+                    console.error('Failed to parse tracks data:', e)
+                    console.log('Original data:', tracks)
+                    tracks = []
+                }
+            }
+            
+            // Ensure tracks is always an array
+            tracks = Array.isArray(tracks) ? tracks : (tracks ? [tracks] : [])
+            console.log('Tracks data:', tracks)
             where = 4
             const originResponse= await getAddress(packageInfo.origin);
             const  destinationResponse = await getAddress(packageInfo.destination);
@@ -117,13 +139,13 @@ export default function TrackPackage() {
             const origin = originResponse.data
             const destination = destinationResponse.data
             where = 6
-            const steps = tracks.map((track, index) => {
+            const steps = tracks && tracks.length > 0 ? tracks.map((track, index) => {
                 const actionDetails = getActionDetails(track.action)
                 const isLast = index === tracks.length - 1
                 const isCompleted = !isLast || track.action === "ARRIVED_FINAL"
                 where = 7
                 return {
-                    id: track.id.toString(),
+                    id: (track.id || track.track_id || index).toString(),
                     title: actionDetails.title,
                     description: track.comment || actionDetails.description,
                     date: formatDate(track.timestamp),
@@ -136,11 +158,13 @@ export default function TrackPackage() {
                     status: isCompleted ? "completed" : isLast ? "current" : "pending",
                     icon: actionDetails.icon,
                 }
-            })
+            }) : []
 
-            const lastTrack = tracks[tracks.length - 1]
-            const estimatedDelivery = new Date(lastTrack.timestamp)
-            estimatedDelivery.setDate(estimatedDelivery.getDate() + 3)
+            const lastTrack = tracks && tracks.length > 0 ? tracks[tracks.length - 1] : null
+            const estimatedDelivery = lastTrack ? new Date(lastTrack.timestamp) : new Date()
+            if (lastTrack) {
+                estimatedDelivery.setDate(estimatedDelivery.getDate() + 3)
+            }
             where = 8
             const processedPackageData = {
                 trackingNumber: packageInfo.code,
