@@ -4,36 +4,53 @@ import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined,
 import api from "../../lib/axios";
 import {useAddresses} from "../../hooks/services/useAddresses";
 import {usePackages} from "../../hooks/services/usePackages";
+import {useImages} from "../../hooks/services/useImages";
 
 export function RegisterPackageForm({ onSubmit }) {
     const [form] = Form.useForm();
-    const { createPackage, uploadPackageImage } = usePackages();
-    const { createAddress } = useAddresses(api);
+    const { createPackage } = usePackages();
+    const { createAddress } = useAddresses();
+    const { uploadImage, loading: imageLoading } = useImages();
 
     const handleFinish = async (values) => {
         try {
+            console.log("Starting package creation process...");
+            
+            // Step 1: Create addresses
+            console.log("Creating addresses...");
             const originAddress = await createAddress(values.origin);
+            console.log("Origin address created:", originAddress);
+            
             const destinationAddress = await createAddress(values.destination);
+            console.log("Destination address created:", destinationAddress);
 
+            // Step 2: Create package
+            console.log("Creating package...");
             const pkg = await createPackage({
                 origin: originAddress.data.address_id,
                 destination: destinationAddress.data.address_id,
                 receiver_name: values.receiver,
-                receiver_email:values.email,
+                receiver_email: values.email,
                 size: values.size,
                 status: "CREATED",
                 weight: values.weight,
                 email: values.email,
             });
+            console.log("Package created:", pkg);
 
-            const file = values.image[0].originFileObj;
-            await uploadPackageImage(pkg.data.code, file);
-            console.log(file);
+            // Step 3: Upload image if provided (using pre-signed URL)
+            if (values.image && values.image[0]) {
+                console.log("Uploading image using pre-signed URL...");
+                const file = values.image[0].originFileObj;
+                const imageResult = await uploadImage(pkg.data.code, file, 'CREATION');
+                console.log("Image uploaded:", imageResult);
+            }
 
             form.resetFields();
             if (onSubmit) onSubmit(pkg.data, () => form.resetFields());
+            message.success("Package created successfully!");
         } catch (err) {
-            console.error(err);
+            console.error("Error creating package:", err);
             message.error("Something went wrong while creating the package");
         }
     };
@@ -179,7 +196,12 @@ export function RegisterPackageForm({ onSubmit }) {
             </Card>
 
             <Form.Item>
-                <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
+                <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    style={{ width: "100%" }}
+                    loading={imageLoading}
+                >
                     Register Delivery
                 </Button>
             </Form.Item>
