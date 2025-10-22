@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { AuthContext } from "./authContext";
 
-import { signIn, signUp, signOut } from '@aws-amplify/auth';
+import { signIn, signUp, signOut, confirmSignUp } from '@aws-amplify/auth';
 
 function parseJwt(token) {
     try {
@@ -80,6 +80,19 @@ export const AuthContextProvider = ({ children }) => {
         }
     }, []);
 
+    const handleConfirmCode = useCallback(async (email, code) => {
+        try {
+            await confirmSignUp({
+                username: email,
+                confirmationCode: code
+            });
+            return true;
+        } catch (err) {
+            console.error("Error al confirmar código:", err);
+            throw err.message || "Code verification failed";
+        }
+    }, []);
+
 
     const handleLogout = async () => {
         try {
@@ -128,6 +141,7 @@ export const AuthContextProvider = ({ children }) => {
                 handleLogout,
                 handleTokensRefresh,
                 handleRegister,
+                handleConfirmCode,
             }}
         >
             {children}

@@ -17,6 +17,7 @@ const getInitialState = () => ({
     handleLogout: () => {},
     handleTokensRefresh: () => {},
     handleRegister: () => Promise.resolve(false),
+    handleConfirmCode: () => Promise.resolve(false),
     setUserDetails: () => Promise.resolve(false),
 });
 
