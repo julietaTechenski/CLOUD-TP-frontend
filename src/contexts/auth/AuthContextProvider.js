@@ -17,7 +17,7 @@ export const AuthContextProvider = ({ children }) => {
     const handleLogin = useCallback( async(email,password ) => {
         setAuth((prev) => ({ ...prev, loading: true }));
         try {
-            const res =await  api.post("/auth/token/", {email, password });
+            const res =await  api.post("/auth/token", {email, password });
             const { access, refresh, userId, role } = res.data;
             sessionStorage.setItem("access_token", access);
             sessionStorage.setItem("refresh_token", refresh);
@@ -38,7 +38,7 @@ export const AuthContextProvider = ({ children }) => {
     const handleRegister = useCallback (async (username,email,password)  => {
         console.log("Payload que voy a enviar:", { username, email, password });
         try {
-            const response = await api.post("/auth/register/", { username, email, password });
+            const response = await api.post("/auth/register", { username, email, password });
             return true;
         } catch (err) {
             console.error("Error al registrar:", err.response?.data);
@@ -72,7 +72,7 @@ export const AuthContextProvider = ({ children }) => {
 
     const setUserDetails = useCallback(async () => {
         try {
-            const res = await api.get("/auth/me/");
+            const res = await api.get("/auth/me");
             const { id, role, email, first_name, last_name } = res.data;
             sessionStorage.setItem("userId", id);
             sessionStorage.setItem("role", role);
