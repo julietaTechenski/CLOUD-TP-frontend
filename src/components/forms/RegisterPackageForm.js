@@ -16,8 +16,8 @@ export function RegisterPackageForm({ onSubmit }) {
             const destinationAddress = await createAddress(values.destination);
 
             const pkg = await createPackage({
-                origin: originAddress.data.id,
-                destination: destinationAddress.data.id,
+                origin: originAddress.data.address_id,
+                destination: destinationAddress.data.address_id,
                 receiver_name: values.receiver,
                 receiver_email:values.email,
                 size: values.size,
