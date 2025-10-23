@@ -11,7 +11,6 @@ const { Header, Content } = Layout;
 const ROUTES = {
     HOME: "/",
     PROFILE: "/profile",
-    TEST: "/test",
     PACKAGES: "/packages",
     TRACK: "/track",
     AUTH: "/auth",
@@ -28,11 +27,6 @@ export default function AppLayout() {
             key: ROUTES.HOME,
             label: "Home",
             onClick: () => navigate(ROUTES.HOME),
-        },
-        {
-            key: ROUTES.TEST,
-            label: "Test",
-            onClick: () => navigate(ROUTES.TEST),
         },
         {
             key: ROUTES.TRACK,
