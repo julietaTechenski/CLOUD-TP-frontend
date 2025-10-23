@@ -78,7 +78,7 @@ export default function ManagePackages() {
             const depotIds = new Set();
             packages.forEach(pkg => {
                 (pkg.track || []).forEach(t => {
-                    if (t.depot) depotIds.add(t.depot);
+                    if (t.depot_id) depotIds.add(t.depot_id);
                 });
             });
 

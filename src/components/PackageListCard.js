@@ -34,14 +34,14 @@ export default function PackageListCard({
                                         <p>
                                             Origin: {pkg.origin?.street} {pkg.origin?.number}, {pkg.origin?.city} → Destination: {pkg.destination?.street} {pkg.destination?.number}, {pkg.destination?.city}
                                         </p>
-                                        {(pkg.track || []).filter(t => t.depot != null).length > 0 && (
+                                        {(pkg.track || []).filter(t => t.depot_id != null).length > 0 && (
                                             <div style={{ marginTop: 8 }}>
                                                 <strong>Tracking History:</strong>
                                                 <ul>
-                                                    {(pkg.track || []).filter(t => t.depot != null).map((t, i) => (
+                                                    {(pkg.track || []).filter(t => t.depot_id != null).map((t, i) => (
                                                         <li key={i}>
                                                             {t.comment || t.action}
-                                                            {t.depot && depotsMap[t.depot] && ` (Depot: ${depotsMap[t.depot].name})`}
+                                                            {t.depot_id && depotsMap[t.depot_id] && ` (Depot: ${depotsMap[t.depot_id].name})`}
                                                         </li>
                                                     ))}
                                                 </ul>

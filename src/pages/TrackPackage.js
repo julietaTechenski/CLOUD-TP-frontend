@@ -125,8 +125,8 @@ export default function TrackPackage() {
                     description: track.comment || actionDetails.description,
                     date: formatDate(track.timestamp),
                     time: formatTime(track.timestamp),
-                    location: track.depot
-                        ? `Depósito ${track.depot}`
+                    location: track.depot_id
+                        ? `Depósito ${track.depot_id}`
                         : origin
                             ? `${origin.city}, ${origin.province}`
                             : "Ubicación desconocida",
