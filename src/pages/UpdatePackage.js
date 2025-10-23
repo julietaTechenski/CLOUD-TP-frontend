@@ -37,7 +37,7 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
                 const lastTrack = await getLatestPackageTrack(packageData.code);
                 if ((lastTrack.data.action === actions.sentToDepot ||
                     lastTrack.data.action === actions.arrivedDepot) && !currentActionIsCancel ) {
-                    const depot = await getDepotById(lastTrack.data.depot);
+                    const depot = await getDepotById(lastTrack.data.depot_id);
                     setLastDepotName(depot.data.name);
                 }
                 setModalState(
@@ -100,7 +100,7 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
         } else if (lastLocation.action === actions.sentToDepot) {
             postPackageTrack(packageData.code, {
                 action: actions.arrivedDepot,
-                depot: lastLocation.depot,
+                depot: lastLocation.depot_id,
                 comment: "Package has arrived at depot"
             })
         }
