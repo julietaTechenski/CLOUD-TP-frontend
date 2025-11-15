@@ -56,17 +56,12 @@ export default function QRCodeModal({ visible, onClose, packageCode, packageData
                     }
                 }
 
-                // Obtener nombre del remitente
-                const senderName = auth?.userEmail || packageData?.sender_email || 'Sender';
-
                 // Misma información para ambos QRs
                 const infoLines = packageData ? [
                     `Package Code: ${packageCode}`,
-                    `From: ${senderName}`,
                     packageData.receiver_name ? `To: ${packageData.receiver_name}` : null,
                     destinationText ? `Destination: ${destinationText}` : null,
                     packageData.created_at ? `Created: ${formatDate(packageData.created_at)}` : null,
-                    packageData.state ? `Status: ${packageData.state}` : null,
                     packageData.size ? `Size: ${packageData.size}` : null,
                     packageData.weight ? `Weight: ${packageData.weight} kg` : null,
                 ].filter(Boolean) : [`Package Code: ${packageCode}`];
