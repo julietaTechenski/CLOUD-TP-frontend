@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Button, Spin, Alert, Result } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, LockOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, LoadingOutlined, LockOutlined } from "@ant-design/icons";
 import { useTracks } from "../hooks/services/useTracks";
 import { useAuth } from "../hooks/services/useAuth";
 

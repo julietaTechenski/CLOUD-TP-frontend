@@ -1,7 +1,6 @@
-import React, {useState} from "react";
+import React from "react";
 import { Card, List, Button, Space } from "antd";
 import { QrcodeOutlined } from "@ant-design/icons";
-import {useDepots} from "../hooks/services/useDepots";
 
 const STATUS_MAP = {
     CREATED: { label: "Created (pending action)", color: "blue" },
