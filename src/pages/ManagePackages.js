@@ -125,6 +125,10 @@ export default function ManagePackages() {
         setPackages((prev) => [...prev, pkg]);
         setFilteredPackages((prev) => [...prev, pkg]);
         message.success(`Package ${pkg.code} registered!`);
+        // Show tracking QR code modal after creating package
+        setQrPackageCode(pkg.code);
+        setQrPackageData(pkg);
+        setQrModalVisible(true);
     };
 
     const showQRCode = (pkg) => {
@@ -233,6 +237,7 @@ export default function ManagePackages() {
                 onClose={() => setQrModalVisible(false)}
                 packageCode={qrPackageCode}
                 packageData={qrPackageData}
+                mode="tracking"
             />
 
             {/* Update Status Modal */}

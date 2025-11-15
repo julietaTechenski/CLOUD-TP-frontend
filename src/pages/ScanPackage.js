@@ -122,7 +122,7 @@ export default function ScanPackage() {
                     title="Package Status Updated!"
                     subTitle="The package status has been successfully updated."
                     extra={[
-                        <Button type="primary" key="track" onClick={() => navigate(`/packages/${code}/tracks/`)}>
+                        <Button type="primary" key="track" onClick={() => navigate(`/track?code=${code}`)}>
                             View Package Details
                         </Button>,
                     ]}

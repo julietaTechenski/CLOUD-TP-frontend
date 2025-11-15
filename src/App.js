@@ -13,6 +13,7 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<AppLayout />}>
+                    <Route path="/track/:code" element={<TrackPackage />} />
                     <Route index element={<Home />} />
                     <Route path="test" element={<Test />} />
                     <Route path="packages" element={<ManagePackages />} />
