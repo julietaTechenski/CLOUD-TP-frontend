@@ -120,9 +120,6 @@ export default function ScanPackage() {
                         <Button type="primary" key="track" onClick={() => navigate(`/track?code=${code}`)}>
                             View Package Details
                         </Button>,
-                        <Button key="scan" onClick={() => window.location.reload()}>
-                            Scan Another
-                        </Button>
                     ]}
                 />
             </div>
@@ -200,14 +197,6 @@ export default function ScanPackage() {
                             onClick={() => navigate("/packages")}
                         >
                             Go to Package Management
-                        </Button>
-                        <Button
-                            size="large"
-                            block
-                            style={{ marginTop: "8px" }}
-                            onClick={() => navigate(`/track?code=${code}`)}
-                        >
-                            View Package Details
                         </Button>
                     </div>
                 )}

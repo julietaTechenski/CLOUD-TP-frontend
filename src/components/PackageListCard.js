@@ -55,19 +55,21 @@ export default function PackageListCard({
                         </div>
 
                         <Space>
-                            <Button
-                                icon={<QrcodeOutlined />}
-                                onClick={() => onShowQR && onShowQR(pkg)}
-                            >
-                                QR Code
-                            </Button>
                             {!(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
-                                <Button
-                                    type="primary"
-                                    onClick={() => onUpdatePackage(pkg)}
-                                >
-                                    Update
-                                </Button>
+                                <>
+                                    <Button
+                                        icon={<QrcodeOutlined />}
+                                        onClick={() => onShowQR && onShowQR(pkg)}
+                                    >
+                                        QR Code
+                                    </Button>
+                                    <Button
+                                        type="primary"
+                                        onClick={() => onUpdatePackage(pkg)}
+                                    >
+                                        Update
+                                    </Button>
+                                </>
                             )}
                         </Space>
                     </List.Item>

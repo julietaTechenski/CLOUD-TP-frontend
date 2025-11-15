@@ -12,9 +12,30 @@ export default function QRCodeModal({ visible, onClose, packageCode, packageData
 
     const handleDownload = () => {
         setTimeout(() => {
-            const canvas = qrRef.current?.querySelector('canvas');
-            if (canvas) {
-                const url = canvas.toDataURL('image/png');
+            const qrCanvas = qrRef.current?.querySelector('canvas');
+
+            if (qrCanvas) {
+                const padding = 50; // Margen extra alrededor del QR (en píxeles)
+                const originalSize = qrCanvas.width;
+                const newSize = originalSize + 2 * padding;
+
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = newSize;
+                finalCanvas.height = newSize;
+                const ctx = finalCanvas.getContext('2d');
+
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, newSize, newSize);
+
+                ctx.drawImage(
+                    qrCanvas,
+                    padding, // Coordenada X de inicio
+                    padding, // Coordenada Y de inicio
+                    originalSize,
+                    originalSize
+                );
+
+                const url = finalCanvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = `QR-${packageCode}.png`;
                 link.href = url;
@@ -66,15 +87,6 @@ export default function QRCodeModal({ visible, onClose, packageCode, packageData
                 </div>
 
                 <Divider />
-
-                <Paragraph>
-                    <Text strong>Scan URL:</Text>
-                </Paragraph>
-                <Paragraph copyable={{ text: scanUrl }}>
-                    <Text code style={{ fontSize: "12px", wordBreak: "break-all" }}>
-                        {scanUrl}
-                    </Text>
-                </Paragraph>
 
                 <Paragraph type="secondary" style={{ fontSize: "12px", marginTop: "16px" }}>
                     Scan this QR code to update the package status when it arrives at a depot or final destination.
