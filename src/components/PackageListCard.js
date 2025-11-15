@@ -1,5 +1,6 @@
 import React, {useState} from "react";
-import { Card, List, Button } from "antd";
+import { Card, List, Button, Space } from "antd";
+import { QrcodeOutlined } from "@ant-design/icons";
 import {useDepots} from "../hooks/services/useDepots";
 
 const STATUS_MAP = {
@@ -15,6 +16,7 @@ export default function PackageListCard({
                                             onSelectPackage,
                                             depotsMap,
                                             onUpdatePackage,
+                                            onShowQR,
                                         }) {
     return (
         <Card title="Registered Packages" style={{ maxWidth: 800, margin: "0 auto" }}>
@@ -52,14 +54,22 @@ export default function PackageListCard({
                             />
                         </div>
 
-                        {!(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
+                        <Space>
                             <Button
-                                type="primary"
-                                onClick={() => onUpdatePackage(pkg)}
+                                icon={<QrcodeOutlined />}
+                                onClick={() => onShowQR && onShowQR(pkg)}
                             >
-                                Update
+                                QR Code
                             </Button>
-                        )}
+                            {!(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
+                                <Button
+                                    type="primary"
+                                    onClick={() => onUpdatePackage(pkg)}
+                                >
+                                    Update
+                                </Button>
+                            )}
+                        </Space>
                     </List.Item>
                 )}
             />
