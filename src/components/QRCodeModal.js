@@ -42,47 +42,39 @@ export default function QRCodeModal({ visible, onClose, packageCode, packageData
                 const lineHeight = 30;
                 const titleHeight = 50;
 
-                let infoLines = [];
-                let instructionText = '';
-
-                if (mode === "scan") {
-                    // QR de creación/admin - mostrar toda la info
-                    infoLines = packageData ? [
-                        `Package Code: ${packageCode}`,
-                        packageData.receiver_name ? `Recipient: ${packageData.receiver_name}` : null,
-                        packageData.state ? `Status: ${packageData.state}` : null,
-                        packageData.size ? `Size: ${packageData.size}` : null,
-                        packageData.weight ? `Weight: ${packageData.weight} kg` : null,
-                    ].filter(Boolean) : [`Package Code: ${packageCode}`];
-                    instructionText = 'Scan this QR code to update package status';
-                } else {
-                    // QR de tracking - mostrar info específica
-                    // Formatear destino
-                    let destinationText = null;
-                    if (packageData?.destination) {
-                        if (typeof packageData.destination === 'object') {
-                            // destination es un objeto con street, number, city, etc.
-                            const dest = packageData.destination;
-                            destinationText = `${dest.street || ''} ${dest.number || ''}, ${dest.city || ''}`.trim();
-                        } else if (packageData.destination_detail) {
-                            // destination_detail está disponible
-                            const dest = packageData.destination_detail;
-                            destinationText = `${dest.street || ''} ${dest.number || ''}, ${dest.city || ''}`.trim();
-                        }
+                // Formatear destino (mismo para ambos modos)
+                let destinationText = null;
+                if (packageData?.destination) {
+                    if (typeof packageData.destination === 'object') {
+                        // destination es un objeto con street, number, city, etc.
+                        const dest = packageData.destination;
+                        destinationText = `${dest.street || ''} ${dest.number || ''}, ${dest.city || ''}`.trim();
+                    } else if (packageData.destination_detail) {
+                        // destination_detail está disponible
+                        const dest = packageData.destination_detail;
+                        destinationText = `${dest.street || ''} ${dest.number || ''}, ${dest.city || ''}`.trim();
                     }
-
-                    // Obtener nombre del remitente
-                    const senderName = auth?.userEmail || packageData?.sender_email || 'Sender';
-
-                    infoLines = [
-                        `Package Code: ${packageCode}`,
-                        `From: ${senderName}`,
-                        packageData?.receiver_name ? `To: ${packageData.receiver_name}` : null,
-                        destinationText ? `Destination: ${destinationText}` : null,
-                        packageData?.created_at ? `Created: ${formatDate(packageData.created_at)}` : null,
-                    ].filter(Boolean);
-                    instructionText = 'Scan this QR code to track your package';
                 }
+
+                // Obtener nombre del remitente
+                const senderName = auth?.userEmail || packageData?.sender_email || 'Sender';
+
+                // Misma información para ambos QRs
+                const infoLines = packageData ? [
+                    `Package Code: ${packageCode}`,
+                    `From: ${senderName}`,
+                    packageData.receiver_name ? `To: ${packageData.receiver_name}` : null,
+                    destinationText ? `Destination: ${destinationText}` : null,
+                    packageData.created_at ? `Created: ${formatDate(packageData.created_at)}` : null,
+                    packageData.state ? `Status: ${packageData.state}` : null,
+                    packageData.size ? `Size: ${packageData.size}` : null,
+                    packageData.weight ? `Weight: ${packageData.weight} kg` : null,
+                ].filter(Boolean) : [`Package Code: ${packageCode}`];
+
+                // Texto de instrucciones según el modo
+                const instructionText = mode === "scan"
+                    ? 'Scan this QR code to update package status'
+                    : 'Scan this QR code to track your package';
 
                 const textHeight = titleHeight + (infoLines.length * lineHeight) + textPadding;
                 const totalHeight = qrSize + textHeight + (padding * 2) + 30; // +30 para el texto de instrucciones
