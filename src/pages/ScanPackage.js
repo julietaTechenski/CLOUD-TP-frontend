@@ -100,8 +100,13 @@ export default function ScanPackage() {
                                 Log In
                             </Button>
                         ),
-                        <Button key="track" onClick={() => navigate("/track")}>
-                            Go to Track Package
+                        <Button
+                            type="primary"
+                            size="large"
+                            block
+                            onClick={() => navigate("/packages")}
+                        >
+                            Go to Package Management
                         </Button>
                     ]}
                 />
