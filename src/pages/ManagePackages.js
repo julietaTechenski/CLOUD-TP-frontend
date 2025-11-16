@@ -168,7 +168,7 @@ export default function ManagePackages() {
                                 packages={userPackages}
                                 depotsMap={depotsMap}
                                 onShowQR={showQRCode}
-                                onChangePriority={async (pkg, prio) => {
+                                onSavePriority={async (pkg, prio) => {
                                     await updatePackagePriority(pkg.code, prio);
                                     setPackageUpdated(true);
                                 }}

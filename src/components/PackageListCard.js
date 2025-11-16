@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, List, Button, Space, Tag, Select, message } from "antd";
 import { QrcodeOutlined } from "@ant-design/icons";
 
@@ -16,8 +16,57 @@ export default function PackageListCard({
                                             depotsMap,
                                             onUpdatePackage,
                                             onShowQR,
-                                            onChangePriority,
+                                            onSavePriority,
                                         }) {
+    const PrioritySelector = ({ pkg }) => {
+        const [localPriority, setLocalPriority] = useState(pkg.priority || "NORMAL");
+        const [dirty, setDirty] = useState(false);
+        const [saving, setSaving] = useState(false);
+
+        const handleChange = (val) => {
+            setLocalPriority(val);
+            setDirty(true);
+        };
+
+        const handleSave = async () => {
+            try {
+                setSaving(true);
+                await onSavePriority(pkg, localPriority);
+                setDirty(false);
+                message.success("Priority updated");
+            } catch (e) {
+                message.error("Failed to update priority");
+            } finally {
+                setSaving(false);
+            }
+        };
+
+        return (
+            <Space>
+                <Select
+                    size="small"
+                    value={localPriority}
+                    style={{ width: 140 }}
+                    onChange={handleChange}
+                    options={[
+                        { value: "NORMAL", label: "Normal" },
+                        { value: "PRIORITY", label: "Priority" },
+                        { value: "HIGH_PRIORITY", label: "High Priority" },
+                    ]}
+                />
+                <Button
+                    size="small"
+                    type="primary"
+                    onClick={handleSave}
+                    disabled={!dirty || saving}
+                    loading={saving}
+                >
+                    Save
+                </Button>
+            </Space>
+        );
+    };
+
     return (
         <Card title="Registered Packages" style={{ maxWidth: 800, margin: "0 auto" }}>
             <List
@@ -64,25 +113,8 @@ export default function PackageListCard({
                         </div>
 
                         <Space>
-                            {onChangePriority && (
-                                <Select
-                                    size="small"
-                                    value={pkg.priority || "NORMAL"}
-                                    style={{ width: 140 }}
-                                    onChange={async (val) => {
-                                        try {
-                                            await onChangePriority(pkg, val);
-                                            message.success("Priority updated");
-                                        } catch (e) {
-                                            message.error("Failed to update priority");
-                                        }
-                                    }}
-                                    options={[
-                                        { value: "NORMAL", label: "Normal" },
-                                        { value: "PRIORITY", label: "Priority" },
-                                        { value: "HIGH_PRIORITY", label: "High Priority" },
-                                    ]}
-                                />
+                            {onSavePriority && (
+                                <PrioritySelector pkg={pkg} />
                             )}
                             {!(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
                                 <>
