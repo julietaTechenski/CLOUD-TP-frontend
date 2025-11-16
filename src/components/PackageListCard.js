@@ -82,11 +82,21 @@ export default function PackageListCard({
                                 title={
                                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                                         <span>{`Package Code: ${pkg.code} | State: ${STATUS_MAP[pkg.state]?.label || pkg.state || "Pending"}`}</span>
-                                        {(pkg.priority === "PRIORITY" || pkg.priority === "HIGH_PRIORITY") && (
-                                            <Tag color={pkg.priority === "HIGH_PRIORITY" ? "red" : "orange"}>
-                                                {pkg.priority === "HIGH_PRIORITY" ? "High Priority" : "Priority"}
-                                            </Tag>
-                                        )}
+                                        <Tag
+                                            color={
+                                                pkg.priority === "HIGH_PRIORITY"
+                                                    ? "red"
+                                                    : pkg.priority === "PRIORITY"
+                                                        ? "orange"
+                                                        : "blue"
+                                            }
+                                        >
+                                            {pkg.priority === "HIGH_PRIORITY"
+                                                ? "High Priority"
+                                                : pkg.priority === "PRIORITY"
+                                                    ? "Priority"
+                                                    : "Normal"}
+                                        </Tag>
                                     </div>
                                 }
                                 description={
@@ -116,7 +126,7 @@ export default function PackageListCard({
                             {onSavePriority && (
                                 <PrioritySelector pkg={pkg} />
                             )}
-                            {!(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
+                            {onUpdatePackage && !(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
                                 <>
                                     <Button
                                         icon={<QrcodeOutlined />}
