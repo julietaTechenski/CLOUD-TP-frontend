@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, List, Button, Space } from "antd";
+import { Card, List, Button, Space, Tag, Select, message } from "antd";
 import { QrcodeOutlined } from "@ant-design/icons";
 
 const STATUS_MAP = {
@@ -16,6 +16,7 @@ export default function PackageListCard({
                                             depotsMap,
                                             onUpdatePackage,
                                             onShowQR,
+                                            onChangePriority,
                                         }) {
     return (
         <Card title="Registered Packages" style={{ maxWidth: 800, margin: "0 auto" }}>
@@ -29,7 +30,16 @@ export default function PackageListCard({
                             style={{ cursor: "default", flex: 1 }}
                         >
                             <List.Item.Meta
-                                title={`Package Code: ${pkg.code} | State: ${STATUS_MAP[pkg.state]?.label || pkg.state || "Pending"}`}
+                                title={
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                        <span>{`Package Code: ${pkg.code} | State: ${STATUS_MAP[pkg.state]?.label || pkg.state || "Pending"}`}</span>
+                                        {(pkg.priority === "PRIORITY" || pkg.priority === "HIGH_PRIORITY") && (
+                                            <Tag color={pkg.priority === "HIGH_PRIORITY" ? "red" : "orange"}>
+                                                {pkg.priority === "HIGH_PRIORITY" ? "High Priority" : "Priority"}
+                                            </Tag>
+                                        )}
+                                    </div>
+                                }
                                 description={
                                     <>
                                         <p>
@@ -54,6 +64,26 @@ export default function PackageListCard({
                         </div>
 
                         <Space>
+                            {onChangePriority && (
+                                <Select
+                                    size="small"
+                                    value={pkg.priority || "NORMAL"}
+                                    style={{ width: 140 }}
+                                    onChange={async (val) => {
+                                        try {
+                                            await onChangePriority(pkg, val);
+                                            message.success("Priority updated");
+                                        } catch (e) {
+                                            message.error("Failed to update priority");
+                                        }
+                                    }}
+                                    options={[
+                                        { value: "NORMAL", label: "Normal" },
+                                        { value: "PRIORITY", label: "Priority" },
+                                        { value: "HIGH_PRIORITY", label: "High Priority" },
+                                    ]}
+                                />
+                            )}
                             {!(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
                                 <>
                                     <Button

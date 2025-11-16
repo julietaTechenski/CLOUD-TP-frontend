@@ -30,7 +30,7 @@ export default function ManagePackages() {
 
 
     const { getAddresses } = useAddresses();
-    const { getPackages } = usePackages();
+    const { getPackages, updatePackagePriority } = usePackages();
     const { getPackageTracks } = useTracks();
     const { getDepotById } = useDepots();
 
@@ -164,13 +164,15 @@ export default function ManagePackages() {
                             title="Your Packages"
                             style={{ maxWidth: 800, margin: "1rem auto" }}
                         >
-                            <ul>
-                                {userPackages.map((pkg) => (
-                                    <li key={pkg.package_id} style={{ marginBottom: "0.5rem" }}>
-                                        <strong>Code:</strong> {pkg.code} | <strong>Status:</strong> {pkg.state}
-                                    </li>
-                                ))}
-                            </ul>
+                            <PackageListCard
+                                packages={userPackages}
+                                depotsMap={depotsMap}
+                                onShowQR={showQRCode}
+                                onChangePriority={async (pkg, prio) => {
+                                    await updatePackagePriority(pkg.code, prio);
+                                    setPackageUpdated(true);
+                                }}
+                            />
                         </Card>
                     );
                 } else {
