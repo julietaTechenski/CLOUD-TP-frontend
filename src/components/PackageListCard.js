@@ -11,12 +11,12 @@ const STATUS_MAP = {
 };
 
 const ACTION_MAP = {
-    CREATE: { label: "Package created", color: "blue" },
-    SEND_DEPOT: { label: "Sent to depot", color: "orange" },
-    ARRIVED_DEPOT: { label: "Arrived at depot", color: "gold" },
-    SEND_FINAL: { label: "Sent to final destination", color: "purple" },
-    ARRIVED_FINAL: { label: "Arrived at final destination", color: "green" },
-    CANCELLED: { label: "Package cancelled", color: "red" },
+    CREATE: { label: "Package created", color: "gray" },
+    SEND_DEPOT: { label: "Sent to depot", color: "gray" },
+    ARRIVED_DEPOT: { label: "Arrived at depot", color: "gray" },
+    SEND_FINAL: { label: "Sent to final destination", color: "gray" },
+    ARRIVED_FINAL: { label: "Arrived at final destination", color: "gray" },
+    CANCELLED: { label: "Package cancelled", color: "gray" },
 };
 
 
