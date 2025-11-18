@@ -154,44 +154,44 @@ export default function QRCodeModal({ visible, onClose, packageCode, packageData
                     Download QR
                 </Button>
             ]}
-            width={500}
+            width={window.innerWidth <= 768 ? "90%" : 500}
         >
-            <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div className="text-center py-5">
                 {packageData && (
-                    <div style={{ marginBottom: "20px" }}>
+                    <div className="mb-5">
                         <Text strong>Package Code: </Text>
-                        <Text code style={{ fontSize: "18px" }}>{packageCode}</Text>
+                        <Text code className="text-lg">{packageCode}</Text>
                         {packageData.state && (
-                            <div style={{ marginTop: "8px" }}>
+                            <div className="mt-2">
                                 <Text type="secondary">Status: {packageData.state}</Text>
                             </div>
                         )}
                     </div>
                 )}
 
-                <div ref={qrRef} style={{ display: "inline-block" }}>
+                <div ref={qrRef} className="inline-block">
                     <QRCode
                         value={qrUrl}
-                        size={256}
+                        size={window.innerWidth <= 768 ? 200 : 256}
                         errorLevel="M"
-                        style={{ margin: "0 auto" }}
+                        className="mx-auto"
                     />
                 </div>
 
                 <Divider />
 
                 {mode === "scan" ? (
-                    <Paragraph type="secondary" style={{ fontSize: "12px", marginTop: "16px" }}>
+                    <Paragraph type="secondary" className="text-xs mt-4">
                         Scan this QR code to update the package status when it arrives at a depot or final destination. (Admin only)
                     </Paragraph>
                 ) : (
                     <>
-                        <Paragraph type="secondary" style={{ fontSize: "12px", marginTop: "16px" }}>
+                        <Paragraph type="secondary" className="text-xs mt-4">
                             Share this QR code with the recipient to track the package status in real-time.
                         </Paragraph>
-                        <Paragraph copyable={{ text: trackingUrl }} style={{ fontSize: "11px", marginTop: "8px" }}>
+                        <Paragraph copyable={{ text: trackingUrl }} className="text-[11px] mt-2">
                             <Text type="secondary">Tracking Link: </Text>
-                            <Text code style={{ fontSize: "10px" }}>{trackingUrl}</Text>
+                            <Text code className="text-[10px]">{trackingUrl}</Text>
                         </Paragraph>
                     </>
                 )}

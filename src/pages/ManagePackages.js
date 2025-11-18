@@ -140,15 +140,15 @@ export default function ManagePackages() {
     const userPackages = packages.filter(pkg => String(pkg.sender_id) === String(auth.userId));
 
     return (
-        <div style={{ padding: "2rem" }}>
+        <div className="p-2 md:p-8">
             {auth.role === "user" && (
                 <Card
                     title="Packages Management"
-                    style={{ maxWidth: 800, margin: "0 auto 2rem auto" }}
+                    className="max-w-[800px] mx-auto mb-4 md:mb-8 w-full"
                 >
                     <Button
                         type="primary"
-                        style={{ marginRight: 16 }}
+                        className="mr-4"
                         onClick={() => setRegisterModalVisible(true)}
                     >
                         Register Package
@@ -162,7 +162,7 @@ export default function ManagePackages() {
                     return (
                         <Card
                             title="Your Packages"
-                            style={{ maxWidth: 800, margin: "1rem auto" }}
+                            className="max-w-[800px] my-2 md:my-4 mx-auto w-full"
                         >
                             <PackageListCard
                                 packages={userPackages}
@@ -179,7 +179,7 @@ export default function ManagePackages() {
                     return (
                         <Card
                             title="Your Packages"
-                            style={{ maxWidth: 800, margin: "1rem auto", textAlign: "center" }}
+                            className="max-w-[800px] my-2 md:my-4 mx-auto text-center w-full"
                         >
                             You don’t have any packages yet
                         </Card>
@@ -191,7 +191,7 @@ export default function ManagePackages() {
             {auth.role === "admin" && (
                 <Card
                     title="Filter Packages"
-                    style={{ maxWidth: 800, margin: "0 auto 1rem auto" }}
+                    className="max-w-[800px] mx-auto mb-2 md:mb-4 w-full"
                 >
                     <Search
                         placeholder="Search by code, city, or state"
@@ -222,7 +222,8 @@ export default function ManagePackages() {
                 open={isRegisterModalVisible}
                 onCancel={() => setRegisterModalVisible(false)}
                 footer={null}
-                width={800}
+                className="[&_.ant-modal]:w-[95%] md:[&_.ant-modal]:w-[800px]"
+                width={window.innerWidth <= 768 ? "95%" : 800}
             >
                 <RegisterPackageForm
                     onSubmit={(pkg, resetForm) => {
@@ -248,7 +249,8 @@ export default function ManagePackages() {
                 open={!!selectedPackage}
                 onCancel={() => setSelectedPackage(null)}
                 footer={null}
-                width={600}
+                className="[&_.ant-modal]:w-[95%] md:[&_.ant-modal]:w-[600px]"
+                width={window.innerWidth <= 768 ? "95%" : 600}
             >
                 {selectedPackage !== null && (
                     <UpdatePackageModal

@@ -244,52 +244,52 @@ export default function TrackPackage() {
                 fontFamily: "system-ui, -apple-system, sans-serif",
             },
         },
-        h(
-            "div",
-            {
-                style: {
-                    maxWidth: "1024px",
-                    margin: "0 auto",
-                    padding: "32px 16px",
-                },
-            },
             h(
                 "div",
-                { style: { textAlign: "center", marginBottom: "32px" } },
-                h(
-                    "h1",
                     {
                         style: {
-                            fontSize: "36px",
-                            fontWeight: "bold",
-                            color: "#111827",
-                            marginBottom: "8px",
+                            maxWidth: "1024px",
+                            margin: "0 auto",
+                            padding: window.innerWidth <= 768 ? "8px 8px" : "32px 16px",
                         },
                     },
-                    "Package Tracking",
-                ),
-                h(
-                    "p",
-                    {
-                        style: {
-                            color: "#6b7280",
-                            fontSize: "18px",
+            h(
+                "div",
+                { style: { textAlign: "center", marginBottom: window.innerWidth <= 768 ? "16px" : "32px" } },
+                    h(
+                        "h1",
+                        {
+                            style: {
+                                fontSize: window.innerWidth <= 768 ? "24px" : "36px",
+                                fontWeight: "bold",
+                                color: "#111827",
+                                marginBottom: "8px",
+                            },
                         },
-                    },
-                    "Track your package in real time",
-                ),
+                        "Package Tracking",
+                    ),
+                    h(
+                        "p",
+                        {
+                            style: {
+                                color: "#6b7280",
+                                fontSize: window.innerWidth <= 768 ? "14px" : "18px",
+                            },
+                        },
+                        "Track your package in real time",
+                    ),
             ),
 
             h(
                 "div",
                 {
-                    style: {
-                        backgroundColor: "white",
-                        borderRadius: "8px",
-                        padding: "24px",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                        marginBottom: "32px",
-                    },
+                        style: {
+                            backgroundColor: "white",
+                            borderRadius: "8px",
+                            padding: window.innerWidth <= 768 ? "16px" : "24px",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                            marginBottom: window.innerWidth <= 768 ? "16px" : "32px",
+                        },
                 },
                 h(
                     "div",
@@ -321,7 +321,14 @@ export default function TrackPackage() {
                 ),
                 h(
                     "div",
-                    { style: { display: "flex", gap: "16px", marginBottom: "16px" } },
+                    { 
+                        style: { 
+                            display: "flex", 
+                            flexDirection: window.innerWidth <= 768 ? "column" : "row",
+                            gap: "16px", 
+                            marginBottom: "16px" 
+                        } 
+                    },
                     h("input", {
                         type: "text",
                         placeholder: "e.g. 10000001",
@@ -333,7 +340,8 @@ export default function TrackPackage() {
                             padding: "12px",
                             border: "1px solid #d1d5db",
                             borderRadius: "6px",
-                            fontSize: "16px",
+                            fontSize: window.innerWidth <= 768 ? "14px" : "16px",
+                            width: window.innerWidth <= 768 ? "100%" : "auto",
                         },
                     }),
                     h(
@@ -342,14 +350,15 @@ export default function TrackPackage() {
                             onClick: handleSearch,
                             disabled: isLoading,
                             style: {
-                                padding: "12px 24px",
+                                padding: window.innerWidth <= 768 ? "12px" : "12px 24px",
                                 backgroundColor: isLoading ? "#9ca3af" : "#3b82f6",
                                 color: "white",
                                 border: "none",
                                 borderRadius: "6px",
-                                fontSize: "16px",
+                                fontSize: window.innerWidth <= 768 ? "14px" : "16px",
                                 fontWeight: "500",
                                 cursor: isLoading ? "not-allowed" : "pointer",
+                                width: window.innerWidth <= 768 ? "100%" : "auto",
                             },
                         },
                         isLoading ? "⏳ Searching..." : "Track",
@@ -384,8 +393,9 @@ export default function TrackPackage() {
                         style: {
                             backgroundColor: "white",
                             borderRadius: "8px",
-                            padding: "24px",
+                            padding: window.innerWidth <= 768 ? "16px" : "24px",
                             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                            marginBottom: window.innerWidth <= 768 ? "12px" : "24px",
                         },
                     },
                     h(
@@ -395,7 +405,7 @@ export default function TrackPackage() {
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "center",
-                                marginBottom: "16px",
+                                marginBottom: window.innerWidth <= 768 ? "12px" : "16px",
                             },
                         },
                         h(
@@ -415,7 +425,7 @@ export default function TrackPackage() {
                         {
                             style: {
                                 display: "grid",
-                                gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                                gridTemplateColumns: window.innerWidth <= 768 ? "1fr" : "repeat(auto-fit, minmax(250px, 1fr))",
                                 gap: "16px",
                             },
                         },
@@ -468,13 +478,13 @@ export default function TrackPackage() {
                         style: {
                             backgroundColor: "white",
                             borderRadius: "8px",
-                            padding: "24px",
+                            padding: window.innerWidth <= 768 ? "16px" : "24px",
                             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                         },
                     },
                     h(
                         "div",
-                        { style: { marginBottom: "16px" } },
+                        { style: { marginBottom: window.innerWidth <= 768 ? "12px" : "16px" } },
                         h(
                             "h2",
                             {
@@ -499,14 +509,28 @@ export default function TrackPackage() {
                     ),
                     h(
                         "div",
-                        { style: { display: "flex", flexDirection: "column", gap: "16px" } },
+                        { style: { display: "flex", flexDirection: "column", gap: window.innerWidth <= 768 ? "12px" : "16px" } },
                         packageData.steps.map((step, index) =>
                             h(
                                 "div",
-                                { key: step.id, style: { display: "flex", gap: "16px" } },
+                                { 
+                                    key: step.id, 
+                                    style: { 
+                                        display: "flex", 
+                                        gap: window.innerWidth <= 768 ? "12px" : "16px",
+                                        flexDirection: window.innerWidth <= 768 ? "row" : "row",
+                                    } 
+                                },
                                 h(
                                     "div",
-                                    { style: { display: "flex", flexDirection: "column", alignItems: "center" } },
+                                    { 
+                                        style: { 
+                                            display: "flex", 
+                                            flexDirection: "column", 
+                                            alignItems: "center",
+                                            flexShrink: 0,
+                                        } 
+                                    },
                                     h(
                                         "div",
                                         {
@@ -535,15 +559,24 @@ export default function TrackPackage() {
                                 ),
                                 h(
                                     "div",
-                                    { style: { flex: 1, paddingBottom: "32px" } },
+                                    { 
+                                        style: { 
+                                            flex: 1, 
+                                            paddingBottom: window.innerWidth <= 768 ? "8px" : "32px",
+                                            minWidth: 0,
+                                        } 
+                                    },
                                     h(
                                         "div",
                                         {
                                             style: {
                                                 display: "flex",
+                                                flexDirection: window.innerWidth <= 768 ? "column" : "row",
                                                 justifyContent: "space-between",
-                                                alignItems: "flex-start",
+                                                alignItems: window.innerWidth <= 768 ? "flex-start" : "flex-start",
                                                 marginBottom: "4px",
+                                                gap: window.innerWidth <= 768 ? "4px" : "0",
+                                                width: "100%",
                                             },
                                         },
                                         h(

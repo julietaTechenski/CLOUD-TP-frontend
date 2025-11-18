@@ -77,38 +77,13 @@ export default function Auth() {
     };
 
     return (
-        <div
-            style={{
-                minHeight: "100vh",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f8f9fa",
-                padding: "16px",
-            }}
-        >
-            <div
-                style={{
-                    width: "100%",
-                    maxWidth: "400px",
-                    backgroundColor: "white",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                    padding: "32px",
-                }}
-            >
-                <div style={{ marginBottom: "24px", textAlign: "center" }}>
-                    <h1
-                        style={{
-                            fontSize: "24px",
-                            fontWeight: "bold",
-                            marginBottom: "8px",
-                            color: "#1f2937",
-                        }}
-                    >
+        <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] p-4">
+            <div className="w-full max-w-[400px] bg-white rounded-lg shadow-[0_4px_6px_rgba(0,0,0,0.1)] p-6 md:p-8">
+                <div className="mb-6 text-center">
+                    <h1 className="text-2xl font-bold mb-2 text-[#1f2937]">
                         {isLogin ? "Log In" : "Create Account"}
                     </h1>
-                    <p style={{ color: "#6b7280", fontSize: "14px" }}>
+                    <p className="text-[#6b7280] text-sm">
                         {isLogin
                             ? "Enter your email and password to access"
                             : "Fill in the data to create your account"}
@@ -116,16 +91,8 @@ export default function Auth() {
                 </div>
 
                 {error && (
-                    <div
-                        style={{
-                            backgroundColor: "#fef2f2",
-                            border: "1px solid #fecaca",
-                            borderRadius: "6px",
-                            padding: "12px",
-                            marginBottom: "16px",
-                        }}
-                    >
-                        <p style={{ color: "#dc2626", fontSize: "14px", margin: 0 }}>
+                    <div className="bg-[#fef2f2] border border-[#fecaca] rounded-md p-3 mb-4">
+                        <p className="text-[#dc2626] text-sm m-0">
                             {error}
                         </p>
                     </div>
@@ -133,61 +100,46 @@ export default function Auth() {
 
                 <form
                     onSubmit={handleSubmit}
-                    style={{display: "flex", flexDirection: "column", gap: "16px"}}
+                    className="flex flex-col gap-4"
                 >
-                    {!isLogin && (<div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+                    {!isLogin && (
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium text-[#374151]">
+                                Username
+                            </label>
+                            <input
+                                id="username"
+                                type="text"
+                                placeholder="Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                                className="p-3 border border-[#d1d5db] rounded-md text-sm outline-none transition-colors"
+                            />
+                        </div>
+                    )}
+                    <div className="flex flex-col gap-2">
                         <label
-                            style={{fontSize: "14px", fontWeight: "500", color: "#374151"}}
+                            htmlFor="email"
+                            className="text-sm font-medium text-[#374151]"
                         >
-                            Username
+                            Email
                         </label>
                         <input
-                            id="username"
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            id="email"
+                            type="email"
+                            placeholder="your@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
-                            style={{
-                                padding: "12px",
-                                border: "1px solid #d1d5db",
-                                borderRadius: "6px",
-                                fontSize: "14px",
-                                outline: "none",
-                                transition: "border-color 0.2s",
-                            }}
-                        />
-                    </div>)}
-                        <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
-                    <label
-                        htmlFor="email"
-                        style={{fontSize: "14px", fontWeight: "500", color: "#374151"}}
-                    >
-                        Email
-                    </label>
-                    <input
-                        id="email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        style={{
-                            padding: "12px",
-                            border: "1px solid #d1d5db",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                            outline: "none",
-                            transition: "border-color 0.2s",
-                        }}
+                            className="p-3 border border-[#d1d5db] rounded-md text-sm outline-none transition-colors"
                         />
                     </div>
 
-
-                    <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+                    <div className="flex flex-col gap-2">
                         <label
                             htmlFor="password"
-                            style={{fontSize: "14px", fontWeight: "500", color: "#374151"}}
+                            className="text-sm font-medium text-[#374151]"
                         >
                             Password
                         </label>
@@ -198,22 +150,15 @@ export default function Auth() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            style={{
-                                padding: "12px",
-                                border: "1px solid #d1d5db",
-                                borderRadius: "6px",
-                                fontSize: "14px",
-                                outline: "none",
-                                transition: "border-color 0.2s",
-                            }}
+                            className="p-3 border border-[#d1d5db] rounded-md text-sm outline-none transition-colors"
                         />
                     </div>
 
                     {!isLogin && (
-                        <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+                        <div className="flex flex-col gap-2">
                             <label
                                 htmlFor="confirmPassword"
-                                style={{fontSize: "14px", fontWeight: "500", color: "#374151"}}
+                                className="text-sm font-medium text-[#374151]"
                             >
                                 Confirm Password
                             </label>
@@ -224,14 +169,7 @@ export default function Auth() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
-                                style={{
-                                    padding: "12px",
-                                    border: "1px solid #d1d5db",
-                                    borderRadius: "6px",
-                                    fontSize: "14px",
-                                    outline: "none",
-                                    transition: "border-color 0.2s",
-                                }}
+                                className="p-3 border border-[#d1d5db] rounded-md text-sm outline-none transition-colors"
                             />
                         </div>
                     )}
@@ -239,18 +177,11 @@ export default function Auth() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            backgroundColor: isLoading ? "#9ca3af" : "#3b82f6",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            cursor: isLoading ? "not-allowed" : "pointer",
-                            transition: "background-color 0.2s",
-                        }}
+                        className={`w-full p-3 text-white border-none rounded-md text-sm font-medium transition-colors ${
+                            isLoading 
+                                ? "bg-[#9ca3af] cursor-not-allowed" 
+                                : "bg-[#3b82f6] cursor-pointer hover:bg-[#2563eb]"
+                        }`}
                     >
                         {isLoading
                             ? isLogin
@@ -262,26 +193,19 @@ export default function Auth() {
                     </button>
                 </form>
                 {successMessage && (
-                    <div style={{ backgroundColor: "#d1fae5", color: "#065f46", padding: "12px", marginBottom: "16px", borderRadius: "6px" }}>
+                    <div className="bg-[#d1fae5] text-[#065f46] p-3 mb-4 rounded-md">
                         {successMessage}
                     </div>
                 )}
 
-                <div style={{marginTop: "16px", textAlign: "center"}}>
-                    <p style={{fontSize: "14px", color: "#6b7280"}}>
+                <div className="mt-4 text-center">
+                    <p className="text-sm text-[#6b7280]">
                         {isLogin ? "Don't you have an account?": "Have you already got an account? "}
 
                         <button
                             type="button"
                             onClick={toggleMode}
-                            style={{
-                                color: "#3b82f6",
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                textDecoration: "underline",
-                                fontSize: "14px",
-                            }}
+                            className="text-[#3b82f6] bg-transparent border-none cursor-pointer underline text-sm"
                         >
                             {isLogin ? "Create Account" : "Log In"}
                         </button>
