@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getAmplifyAccessToken, clearAmplifyStorage , getAmplifyIdToken} from "../utils/amplifyStorage";
+import { clearAmplifyStorage , getAmplifyIdToken} from "../utils/amplifyStorage";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 

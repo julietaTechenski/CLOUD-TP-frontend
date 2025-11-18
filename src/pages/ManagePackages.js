@@ -19,7 +19,7 @@ export default function ManagePackages() {
     const [depotsMap, setDepotsMap] = useState({});
     const [filteredPackages, setFilteredPackages] = useState([]);
     const [isRegisterModalVisible, setRegisterModalVisible] = useState(false);
-    const [updateModalVisible, setUpdateModalVisible] = useState(false)
+    const [setUpdateModalVisible] = useState(false)
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
     const [qrModalVisible, setQrModalVisible] = useState(false);

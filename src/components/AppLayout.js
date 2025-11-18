@@ -20,7 +20,7 @@ const ROUTES = {
 export default function AppLayout() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { authenticated, setUserDetails } = useAuth();
+    const { authenticated } = useAuth();
     const [isProfileDrawerVisible, setProfileDrawerVisible] = useState(false);
     const [isMobileMenuVisible, setMobileMenuVisible] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);

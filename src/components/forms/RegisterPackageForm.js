@@ -1,7 +1,6 @@
 import React from "react";
 import {Form, Input, Button, Card, Row, Col, message, Upload} from "antd";
 import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined, UploadOutlined} from "@ant-design/icons";
-import api from "../../lib/axios";
 import {useAddresses} from "../../hooks/services/useAddresses";
 import {usePackages} from "../../hooks/services/usePackages";
 import {useImages} from "../../hooks/services/useImages";
