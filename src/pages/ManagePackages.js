@@ -2,6 +2,7 @@ import React, {useState, useEffect} from "react";
 import { Button, Card, Modal, Input, message } from "antd";
 import { RegisterPackageForm } from "../components/forms/RegisterPackageForm";
 import UpdatePackageModal from "./UpdatePackage";
+import QRCodeModal from "../components/QRCodeModal";
 import {useAddresses} from "../hooks/services/useAddresses";
 import {usePackages} from "../hooks/services/usePackages";
 import PackageListCard from "../components/PackageListCard";
@@ -21,12 +22,15 @@ export default function ManagePackages() {
     const [updateModalVisible, setUpdateModalVisible] = useState(false)
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
+    const [qrModalVisible, setQrModalVisible] = useState(false);
+    const [qrPackageCode, setQrPackageCode] = useState(null);
+    const [qrPackageData, setQrPackageData] = useState(null);
 
     const [packageUpdated, setPackageUpdated] = useState(false);
 
 
     const { getAddresses } = useAddresses();
-    const { getPackages } = usePackages();
+    const { getPackages, updatePackagePriority } = usePackages();
     const { getPackageTracks } = useTracks();
     const { getDepotById } = useDepots();
 
@@ -37,7 +41,7 @@ export default function ManagePackages() {
                 const packagesRes = await getPackages();
 
                 const addressesMap = {};
-                
+
                 addressesRes.data.forEach((addr) => {
                     addressesMap[addr.address_id] = addr;
                 });
@@ -121,6 +125,16 @@ export default function ManagePackages() {
         setPackages((prev) => [...prev, pkg]);
         setFilteredPackages((prev) => [...prev, pkg]);
         message.success(`Package ${pkg.code} registered!`);
+        // Show tracking QR code modal after creating package
+        setQrPackageCode(pkg.code);
+        setQrPackageData(pkg);
+        setQrModalVisible(true);
+    };
+
+    const showQRCode = (pkg) => {
+        setQrPackageCode(pkg.code);
+        setQrPackageData(pkg);
+        setQrModalVisible(true);
     };
 
     const userPackages = packages.filter(pkg => String(pkg.sender_id) === String(auth.userId));
@@ -128,18 +142,18 @@ export default function ManagePackages() {
     return (
         <div style={{ padding: "2rem" }}>
             {auth.role === "user" && (
-            <Card
-                title="Packages Management"
-                style={{ maxWidth: 800, margin: "0 auto 2rem auto" }}
-            >
-                <Button
-                    type="primary"
-                    style={{ marginRight: 16 }}
-                    onClick={() => setRegisterModalVisible(true)}
+                <Card
+                    title="Packages Management"
+                    style={{ maxWidth: 800, margin: "0 auto 2rem auto" }}
                 >
-                    Register Package
-                </Button>
-            </Card>
+                    <Button
+                        type="primary"
+                        style={{ marginRight: 16 }}
+                        onClick={() => setRegisterModalVisible(true)}
+                    >
+                        Register Package
+                    </Button>
+                </Card>
             )}
 
             {/* Packages list for current user */}
@@ -150,13 +164,15 @@ export default function ManagePackages() {
                             title="Your Packages"
                             style={{ maxWidth: 800, margin: "1rem auto" }}
                         >
-                            <ul>
-                                {userPackages.map((pkg) => (
-                                    <li key={pkg.package_id} style={{ marginBottom: "0.5rem" }}>
-                                        <strong>Code:</strong> {pkg.code} | <strong>Status:</strong> {pkg.state}
-                                    </li>
-                                ))}
-                            </ul>
+                            <PackageListCard
+                                packages={userPackages}
+                                depotsMap={depotsMap}
+                                onShowQR={showQRCode}
+                                onSavePriority={async (pkg, prio) => {
+                                    await updatePackagePriority(pkg.code, prio);
+                                    setPackageUpdated(true);
+                                }}
+                            />
                         </Card>
                     );
                 } else {
@@ -173,17 +189,17 @@ export default function ManagePackages() {
 
             {/* Filter input */}
             {auth.role === "admin" && (
-            <Card
-                title="Filter Packages"
-                style={{ maxWidth: 800, margin: "0 auto 1rem auto" }}
-            >
-                <Search
-                    placeholder="Search by code, city, or state"
-                    value={filterText}
-                    onChange={(e) => setFilterText(e.target.value)}
-                    allowClear
-                />
-            </Card>
+                <Card
+                    title="Filter Packages"
+                    style={{ maxWidth: 800, margin: "0 auto 1rem auto" }}
+                >
+                    <Search
+                        placeholder="Search by code, city, or state"
+                        value={filterText}
+                        onChange={(e) => setFilterText(e.target.value)}
+                        allowClear
+                    />
+                </Card>
             )}
 
             {/* Packages list */}
@@ -196,6 +212,7 @@ export default function ManagePackages() {
                         setSelectedPackage(pkg);
                         setUpdateModalVisible(true);
                     }}
+                    onShowQR={showQRCode}
                 />
             )}
 
@@ -215,6 +232,15 @@ export default function ManagePackages() {
                     }}
                 />
             </Modal>
+
+            {/* QR Code Modal */}
+            <QRCodeModal
+                visible={qrModalVisible}
+                onClose={() => setQrModalVisible(false)}
+                packageCode={qrPackageCode}
+                packageData={qrPackageData}
+                mode="tracking"
+            />
 
             {/* Update Status Modal */}
             <Modal

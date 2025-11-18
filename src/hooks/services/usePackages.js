@@ -14,6 +14,10 @@ export const usePackages = () => ({
 
     getPackageById: (code) => api.get(`/packages/${code}`),
 
+    updatePackagePriority: (code, priority) => {
+        return api.patch(`/packages/${code}`, { priority });
+    },
+
     uploadPackageImage: (code, file) => {
         const formData = new FormData();
         formData.append("purpose", "CREATION");

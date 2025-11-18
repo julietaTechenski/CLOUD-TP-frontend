@@ -17,5 +17,13 @@ export const useTracks = () => {
         return api.post(`/packages/${code}/tracks/`, data);
     }, []);
 
-    return { getPackageTracks, getLatestPackageTrack, postPackageTrack };
+    const getScanInfo = useCallback((code) => {
+        return api.get(`/packages/${code}/tracks/scan/`);
+    }, []);
+
+    const handleQrScan = useCallback((code) => {
+        return api.post(`/packages/${code}/tracks/scan/`);
+    }, []);
+
+    return { getPackageTracks, getLatestPackageTrack, postPackageTrack, getScanInfo, handleQrScan };
 }

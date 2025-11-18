@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createElement as h } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 import {useTracks} from "../hooks/services/useTracks";
 import {usePackages} from "../hooks/services/usePackages";
 import {useAddresses} from "../hooks/services/useAddresses";
+import api from "../lib/axios";
 const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("en-US", {
@@ -77,7 +79,8 @@ const mapPackageState = (state) => {
 }
 
 export default function TrackPackage() {
-    const [trackingNumber, setTrackingNumber] = useState("")
+    const params = useParams();
+    const [trackingNumber, setTrackingNumber] = useState(params?.code || "")
     const [packageData, setPackageData] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const {getPackageTracks} = useTracks()
@@ -85,8 +88,16 @@ export default function TrackPackage() {
     const {getAddress} = useAddresses()
     const [error, setError] = useState("")
 
-    const handleSearch = async () => {
-        if (!trackingNumber.trim()) {
+    // Auto-load package if accessed via public route with code in URL
+    useEffect(() => {
+        if (params?.code) {
+            handleSearch(params.code);
+        }
+    }, [params?.code]);
+
+    const handleSearch = async (code = null) => {
+        const searchCode = code || trackingNumber;
+        if (!searchCode.trim()) {
             setError("Please enter a tracking code")
             return
         }
@@ -95,41 +106,40 @@ export default function TrackPackage() {
         setError("")
 
         try {
-            const packageResponse = await getPackageById(trackingNumber);
+            let packageInfo, tracks, origin, destination;
 
-            if (!packageResponse) {
-                if (packageResponse.status === 404) {
-                    throw new Error("Tracking code not found")
-                }
-                throw new Error("Error fetching the package")
+            // All endpoints are public, so we can use them directly
+            const packageResponse = await getPackageById(searchCode);
+            if (!packageResponse || packageResponse.status === 404) {
+                throw new Error("Tracking code not found")
             }
-            const packageInfo =  packageResponse.data
-            const tracksResponse = await getPackageTracks(trackingNumber);
-            
-            let tracks = tracksResponse.data
-            
-            // Ensure tracks is always an array
-            tracks = Array.isArray(tracks) ? tracks : (tracks ? [tracks] : [])
-            console.log('Tracks data:', tracks)
-            const originResponse= await getAddress(packageInfo.origin);
-            const  destinationResponse = await getAddress(packageInfo.destination);
-            const origin = originResponse.data
-            const destination = destinationResponse.data
+            packageInfo = packageResponse.data;
+            const tracksResponse = await getPackageTracks(searchCode);
+            tracks = tracksResponse.data;
+            tracks = Array.isArray(tracks) ? tracks : (tracks ? [tracks] : []);
+            const originResponse = await getAddress(packageInfo.origin);
+            const destinationResponse = await getAddress(packageInfo.destination);
+            origin = originResponse.data;
+            destination = destinationResponse.data;
             const steps = tracks && tracks.length > 0 ? tracks.map((track, index) => {
                 const actionDetails = getActionDetails(track.action)
                 const isLast = index === tracks.length - 1
                 const isCompleted = !isLast || track.action === "ARRIVED_FINAL"
+                // Use depot_name if available (from public endpoint), otherwise use depot_id
+                const location = track.depot_name
+                    ? track.depot_name
+                    : track.depot_id
+                        ? `Depósito ${track.depot_id}`
+                        : origin
+                            ? `${origin.city}, ${origin.province}`
+                            : "Ubicación desconocida";
                 return {
-                    id: (track.track_id || track.track_id || index).toString(),
+                    id: (track.track_id || index).toString(),
                     title: actionDetails.title,
                     description: track.comment || actionDetails.description,
                     date: formatDate(track.timestamp),
                     time: formatTime(track.timestamp),
-                    location: track.depot_id
-                        ? `Depósito ${track.depot_id}`
-                        : origin
-                            ? `${origin.city}, ${origin.province}`
-                            : "Ubicación desconocida",
+                    location: location,
                     status: isCompleted ? "completed" : isLast ? "current" : "pending",
                     icon: actionDetails.icon,
                 }
@@ -221,7 +231,7 @@ export default function TrackPackage() {
             case "pending":
                 return { backgroundColor: "#e5e7eb", color: "#6b7280" }
             default:
-               return { backgroundColor: "#e5e7eb", color: "#6b7280"}
+                return { backgroundColor: "#e5e7eb", color: "#6b7280"}
         }
     }
 

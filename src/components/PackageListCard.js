@@ -1,6 +1,6 @@
-import React, {useState} from "react";
-import { Card, List, Button } from "antd";
-import {useDepots} from "../hooks/services/useDepots";
+import React, { useState } from "react";
+import { Card, List, Button, Space, Tag, Select, message } from "antd";
+import { QrcodeOutlined } from "@ant-design/icons";
 
 const STATUS_MAP = {
     CREATED: { label: "Created (pending action)", color: "blue" },
@@ -25,7 +25,58 @@ export default function PackageListCard({
                                             onSelectPackage,
                                             depotsMap,
                                             onUpdatePackage,
+                                            onShowQR,
+                                            onSavePriority,
                                         }) {
+    const PrioritySelector = ({ pkg }) => {
+        const [localPriority, setLocalPriority] = useState(pkg.priority || "NORMAL");
+        const [dirty, setDirty] = useState(false);
+        const [saving, setSaving] = useState(false);
+
+        const handleChange = (val) => {
+            setLocalPriority(val);
+            setDirty(true);
+        };
+
+        const handleSave = async () => {
+            try {
+                setSaving(true);
+                await onSavePriority(pkg, localPriority);
+                setDirty(false);
+                message.success("Priority updated");
+            } catch (e) {
+                message.error("Failed to update priority");
+            } finally {
+                setSaving(false);
+            }
+        };
+
+        return (
+            <Space>
+                <Select
+                    size="small"
+                    value={localPriority}
+                    style={{ width: 140 }}
+                    onChange={handleChange}
+                    options={[
+                        { value: "NORMAL", label: "Normal" },
+                        { value: "PRIORITY", label: "Priority" },
+                        { value: "HIGH_PRIORITY", label: "High Priority" },
+                    ]}
+                />
+                <Button
+                    size="small"
+                    type="primary"
+                    onClick={handleSave}
+                    disabled={!dirty || saving}
+                    loading={saving}
+                >
+                    Save
+                </Button>
+            </Space>
+        );
+    };
+
     return (
         <Card title="Registered Packages" style={{ maxWidth: 800, margin: "0 auto" }}>
             <List
@@ -38,7 +89,26 @@ export default function PackageListCard({
                             style={{ cursor: "default", flex: 1 }}
                         >
                             <List.Item.Meta
-                                title={`Package Code: ${pkg.code} | State: ${STATUS_MAP[pkg.state]?.label || pkg.state || "Pending"}`}
+                                title={
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                        <span>{`Package Code: ${pkg.code} | State: ${STATUS_MAP[pkg.state]?.label || pkg.state || "Pending"}`}</span>
+                                        <Tag
+                                            color={
+                                                pkg.priority === "HIGH_PRIORITY"
+                                                    ? "red"
+                                                    : pkg.priority === "PRIORITY"
+                                                        ? "orange"
+                                                        : "blue"
+                                            }
+                                        >
+                                            {pkg.priority === "HIGH_PRIORITY"
+                                                ? "High Priority"
+                                                : pkg.priority === "PRIORITY"
+                                                    ? "Priority"
+                                                    : "Normal"}
+                                        </Tag>
+                                    </div>
+                                }
                                 description={
                                     <>
                                         <p>
@@ -71,14 +141,27 @@ export default function PackageListCard({
                             />
                         </div>
 
-                        {!(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
-                            <Button
-                                type="primary"
-                                onClick={() => onUpdatePackage(pkg)}
-                            >
-                                Update
-                            </Button>
-                        )}
+                        <Space>
+                            {onSavePriority && (
+                                <PrioritySelector pkg={pkg} />
+                            )}
+                            {onUpdatePackage && !(pkg.state === "CANCELLED" || pkg.state === "DELIVERED") && (
+                                <>
+                                    <Button
+                                        icon={<QrcodeOutlined />}
+                                        onClick={() => onShowQR && onShowQR(pkg)}
+                                    >
+                                        QR Code
+                                    </Button>
+                                    <Button
+                                        type="primary"
+                                        onClick={() => onUpdatePackage(pkg)}
+                                    >
+                                        Update
+                                    </Button>
+                                </>
+                            )}
+                        </Space>
                     </List.Item>
                 )}
             />
