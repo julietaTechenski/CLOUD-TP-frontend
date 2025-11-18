@@ -10,6 +10,16 @@ const STATUS_MAP = {
     CANCELLED: { label: "Cancelled", color: "red" },
 };
 
+const ACTION_MAP = {
+    CREATE: { label: "Package created", color: "blue" },
+    SEND_DEPOT: { label: "Sent to depot", color: "orange" },
+    ARRIVED_DEPOT: { label: "Arrived at depot", color: "gold" },
+    SEND_FINAL: { label: "Sent to final destination", color: "purple" },
+    ARRIVED_FINAL: { label: "Arrived at final destination", color: "green" },
+    CANCELLED: { label: "Package cancelled", color: "red" },
+};
+
+
 export default function PackageListCard({
                                             packages,
                                             onSelectPackage,
@@ -38,12 +48,21 @@ export default function PackageListCard({
                                             <div style={{ marginTop: 8 }}>
                                                 <strong>Tracking History:</strong>
                                                 <ul>
-                                                    {(pkg.track || []).filter(t => t.depot_id != null).map((t, i) => (
-                                                        <li key={i}>
-                                                            {t.comment || t.action}
-                                                            {t.depot_id && depotsMap[t.depot_id] && ` (Depot: ${depotsMap[t.depot_id].name})`}
-                                                        </li>
-                                                    ))}
+                                                    {(pkg.track || []).map((t, i) => {
+                                                        const actionInfo = ACTION_MAP[t.action] || { label: t.action, color: "gray" };
+                                                        return (
+                                                            <li key={i} style={{ color: actionInfo.color }}>
+                                                                <strong>{actionInfo.label}</strong>
+                                                                {t.comment && ` — ${t.comment}`}
+                                                                {t.depot && depotsMap[t.depot] && (
+                                                                    <> (Depot: {depotsMap[t.depot].name})</>
+                                                                )}
+                                                                {t.action === "ARRIVED_FINAL" && (
+                                                                    <> (Final destination)</>
+                                                                )}
+                                                            </li>
+                                                        );
+                                                    })}
                                                 </ul>
                                             </div>
                                         )}
