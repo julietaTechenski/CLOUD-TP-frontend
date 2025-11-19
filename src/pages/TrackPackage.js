@@ -430,34 +430,39 @@ export default function TrackPackage() {
                         ),
                         h("span", { style: getStatusColor(packageData.status) }, packageData.status),
                     ),
-                    packageData.images && packageData.images.length > 0 && h(
-                        "div",
-                        {
-                            style: {
-                                marginBottom: "16px",
-                                display: "flex",
-                                justifyContent: "center",
-                            },
-                        },
-                        h(
-                            "img",
+                    packageData.images && packageData.images.length > 0 && (() => {
+                        const firstImage = packageData.images[0];
+                        // Backend returns presigned_url (pre-signed S3 URL)
+                        let imageUrl = firstImage?.presigned_url || firstImage?.url || firstImage?.image_url || firstImage?.download_url || firstImage?.s3_url;
+                        return imageUrl ? h(
+                            "div",
                             {
-                                src: packageData.images[0]?.url || packageData.images[0]?.image_url || packageData.images[0]?.download_url ||
-                                    (packageData.images[0]?.image_id ? `${process.env.REACT_APP_API_URL || ''}/packages/${packageData.trackingNumber}/images/${packageData.images[0].image_id}` : null),
-                                alt: `Package ${packageData.trackingNumber}`,
                                 style: {
-                                    maxWidth: "100%",
-                                    maxHeight: "300px",
-                                    borderRadius: "8px",
-                                    objectFit: "contain",
-                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                                },
-                                onError: (e) => {
-                                    e.target.style.display = "none";
+                                    marginBottom: "16px",
+                                    display: "flex",
+                                    justifyContent: "center",
                                 },
                             },
-                        ),
-                    ),
+                            h(
+                                "img",
+                                {
+                                    src: imageUrl,
+                                    alt: `Package ${packageData.trackingNumber}`,
+                                    style: {
+                                        maxWidth: "100%",
+                                        maxHeight: "300px",
+                                        borderRadius: "8px",
+                                        objectFit: "contain",
+                                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                        backgroundColor: "#f0f0f0",
+                                    },
+                                    onError: (e) => {
+                                        e.target.style.display = "none";
+                                    },
+                                },
+                            ),
+                        ) : null;
+                    })(),
                     h(
                         "div",
                         {

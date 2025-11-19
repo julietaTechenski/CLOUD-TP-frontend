@@ -108,11 +108,37 @@ export const useImages = () => {
     }
   }, []);
 
+  const getImageDownloadUrl = useCallback(async (packageCode, imageId) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams({
+        action: 'download',
+      });
+
+      const response = await api.get(`/packages/${packageCode}/images/${imageId}?${params}`);
+      
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        throw new Error('Failed to get download URL');
+      }
+    } catch (err) {
+      console.error('Error getting download URL:', err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     loading,
     error,
     uploadImage,
     getPackageImages,
+    getImageDownloadUrl,
     requestUploadUrl,
     uploadToS3
   };
