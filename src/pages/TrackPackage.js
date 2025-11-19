@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom"
 import {useTracks} from "../hooks/services/useTracks";
 import {usePackages} from "../hooks/services/usePackages";
 import {useAddresses} from "../hooks/services/useAddresses";
+import {useImages} from "../hooks/services/useImages";
 const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("en-US", {
@@ -85,6 +86,7 @@ export default function TrackPackage() {
     const {getPackageTracks} = useTracks()
     const {getPackageById} = usePackages()
     const {getAddress} = useAddresses()
+    const {getPackageImages} = useImages()
     const [error, setError] = useState("")
 
     // Auto-load package if accessed via public route with code in URL
@@ -105,7 +107,7 @@ export default function TrackPackage() {
         setError("")
 
         try {
-            let packageInfo, tracks, origin, destination;
+            let packageInfo, tracks, origin, destination, images = [];
 
             // All endpoints are public, so we can use them directly
             const packageResponse = await getPackageById(searchCode);
@@ -120,6 +122,14 @@ export default function TrackPackage() {
             const destinationResponse = await getAddress(packageInfo.destination);
             origin = originResponse.data;
             destination = destinationResponse.data;
+            
+            // Get package images
+            try {
+                const imagesRes = await getPackageImages(searchCode);
+                images = Array.isArray(imagesRes) ? imagesRes : (imagesRes?.data || []);
+            } catch (imgErr) {
+                console.error(`Error fetching images for package ${searchCode}:`, imgErr);
+            }
             const steps = tracks && tracks.length > 0 ? tracks.map((track, index) => {
                 const actionDetails = getActionDetails(track.action)
                 const isLast = index === tracks.length - 1
@@ -160,6 +170,7 @@ export default function TrackPackage() {
                 weight: `${packageInfo.weight} kg`,
                 createdAt: formatDate(packageInfo.created_at),
                 steps: steps.reverse(),
+                images: images,
             }
             setPackageData(processedPackageData)
         } catch (err) {
@@ -418,6 +429,34 @@ export default function TrackPackage() {
                             "Package Information",
                         ),
                         h("span", { style: getStatusColor(packageData.status) }, packageData.status),
+                    ),
+                    packageData.images && packageData.images.length > 0 && h(
+                        "div",
+                        {
+                            style: {
+                                marginBottom: "16px",
+                                display: "flex",
+                                justifyContent: "center",
+                            },
+                        },
+                        h(
+                            "img",
+                            {
+                                src: packageData.images[0]?.url || packageData.images[0]?.image_url || packageData.images[0]?.download_url ||
+                                    (packageData.images[0]?.image_id ? `${process.env.REACT_APP_API_URL || ''}/packages/${packageData.trackingNumber}/images/${packageData.images[0].image_id}` : null),
+                                alt: `Package ${packageData.trackingNumber}`,
+                                style: {
+                                    maxWidth: "100%",
+                                    maxHeight: "300px",
+                                    borderRadius: "8px",
+                                    objectFit: "contain",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                },
+                                onError: (e) => {
+                                    e.target.style.display = "none";
+                                },
+                            },
+                        ),
                     ),
                     h(
                         "div",

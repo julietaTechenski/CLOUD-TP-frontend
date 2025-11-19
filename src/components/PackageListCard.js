@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, List, Button, Space, Tag, Select, message } from "antd";
+import { Card, List, Button, Space, Tag, Select, message, Image } from "antd";
 import { QrcodeOutlined } from "@ant-design/icons";
 
 const STATUS_MAP = {
@@ -86,9 +86,31 @@ export default function PackageListCard({
         <Card title="Registered Packages" className="max-w-[800px] mx-auto w-full">
             <List
                 dataSource={packages}
-                renderItem={(pkg) => (
+                renderItem={(pkg) => {
+                    // Get the first image or the CREATION purpose image
+                    const packageImage = pkg.images && pkg.images.length > 0 
+                        ? (pkg.images.find(img => img.purpose === 'CREATION') || pkg.images[0])
+                        : null;
+                    // Try different possible URL fields, or construct from image_id
+                    const imageUrl = packageImage?.url || packageImage?.image_url || packageImage?.download_url ||
+                        (packageImage?.image_id ? `${process.env.REACT_APP_API_URL || ''}/packages/${pkg.code}/images/${packageImage.image_id}` : null);
+                    
+                    return (
                     <List.Item className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-0 py-3 px-2 md:py-4 md:px-6">
-                        <div className="cursor-default flex-1 w-full md:w-auto">
+                        <div className="cursor-default flex-1 w-full md:w-auto flex gap-3">
+                            {imageUrl && (
+                                <div className="flex-shrink-0">
+                                    <Image
+                                        src={imageUrl}
+                                        alt={`Package ${pkg.code}`}
+                                        width={80}
+                                        height={80}
+                                        style={{ objectFit: 'cover', borderRadius: '4px' }}
+                                        fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect fill='%23f0f0f0' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3ENo Image%3C/text%3E%3C/svg%3E"
+                                    />
+                                </div>
+                            )}
+                            <div className="flex-1">
                             <List.Item.Meta
                                 title={
                                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2 flex-wrap">
@@ -154,6 +176,7 @@ export default function PackageListCard({
                                     </>
                                 }
                             />
+                            </div>
                         </div>
 
                         <Space 
@@ -186,7 +209,8 @@ export default function PackageListCard({
                             )}
                         </Space>
                     </List.Item>
-                )}
+                    );
+                }}
             />
         </Card>
     );
