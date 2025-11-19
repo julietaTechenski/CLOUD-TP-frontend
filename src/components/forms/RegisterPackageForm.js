@@ -1,7 +1,6 @@
 import React from "react";
 import {Form, Input, Button, Card, Row, Col, message, Upload} from "antd";
 import {HomeOutlined, FlagOutlined, MailOutlined, UserOutlined, BoxPlotOutlined, UploadOutlined} from "@ant-design/icons";
-import api from "../../lib/axios";
 import {useAddresses} from "../../hooks/services/useAddresses";
 import {usePackages} from "../../hooks/services/usePackages";
 import {useImages} from "../../hooks/services/useImages";
@@ -69,8 +68,10 @@ export function RegisterPackageForm({ onSubmit }) {
         addressFields.map((field) => (
             <Col
                 key={`${prefix}-${field.name}`}
-                span={field.name === "details" ? 24 : 12} // full width for details
-                style={{ paddingRight: 12, paddingBottom: 12 }}
+                xs={24}
+                sm={field.name === "details" ? 24 : 12}
+                md={field.name === "details" ? 24 : 12}
+                className="pr-3 pb-3"
             >
                 <Form.Item
                     label={field.label}
@@ -93,15 +94,15 @@ export function RegisterPackageForm({ onSubmit }) {
             form={form}
             layout="vertical"
             onFinish={handleFinish}
-            style={{ maxWidth: 700, margin: "0 auto" }}
+            className="max-w-[700px] mx-auto w-full px-0 md:px-0"
         >
             {/* Package Details */}
             <Card
-                title={<span style={{ color: "#faad14" }}><BoxPlotOutlined /> Package Details</span>}
-                style={{ marginBottom: 16, borderLeft: "5px solid #faad14" }}
+                title={<span className="text-[#faad14]"><BoxPlotOutlined /> Package Details</span>}
+                className="mb-4 border-l-[5px] border-l-[#faad14]"
             >
                 <Row gutter={16}>
-                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                    <Col xs={24} sm={12} md={12} className="pr-3 pb-3">
                         <Form.Item
                             label="Size (LxWxH)"
                             name="size"
@@ -110,7 +111,7 @@ export function RegisterPackageForm({ onSubmit }) {
                             <Input placeholder="e.g. 30x20x15 cm" />
                         </Form.Item>
                     </Col>
-                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                    <Col xs={24} sm={12} md={12} className="pr-3 pb-3">
                         <Form.Item
                             label="Weight"
                             name="weight"
@@ -146,8 +147,8 @@ export function RegisterPackageForm({ onSubmit }) {
 
             {/* Origin */}
             <Card
-                title={<span style={{ color: "#1890ff" }}><HomeOutlined /> Origin</span>}
-                style={{ marginBottom: 16, borderLeft: "5px solid #1890ff" }}
+                title={<span className="text-[#1890ff]"><HomeOutlined /> Origin</span>}
+                className="mb-4 border-l-[5px] border-l-[#1890ff]"
             >
                 <Row gutter={16}>
                     {renderAddressFields("origin")}
@@ -156,8 +157,8 @@ export function RegisterPackageForm({ onSubmit }) {
 
             {/* Destination */}
             <Card
-                title={<span style={{ color: "#52c41a" }}><FlagOutlined /> Destination</span>}
-                style={{ marginBottom: 16, borderLeft: "5px solid #52c41a" }}
+                title={<span className="text-[#52c41a]"><FlagOutlined /> Destination</span>}
+                className="mb-4 border-l-[5px] border-l-[#52c41a]"
             >
                 <Row gutter={16}>
                     {renderAddressFields("destination")}
@@ -167,11 +168,11 @@ export function RegisterPackageForm({ onSubmit }) {
 
             {/* Receiver */}
             <Card
-                title={<span style={{ color: "#722ed1" }}><UserOutlined /> Receiver</span>}
-                style={{ marginBottom: 16, borderLeft: "5px solid #722ed1" }}
+                title={<span className="text-[#722ed1]"><UserOutlined /> Receiver</span>}
+                className="mb-4 border-l-[5px] border-l-[#722ed1]"
             >
                 <Row gutter={16}>
-                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                    <Col xs={24} sm={12} md={12} className="pr-3 pb-3">
                         <Form.Item
                             label="Name"
                             name="receiver"
@@ -180,7 +181,7 @@ export function RegisterPackageForm({ onSubmit }) {
                             <Input placeholder="Receiver name" />
                         </Form.Item>
                     </Col>
-                    <Col span={12} style={{ paddingRight: 12, paddingBottom: 12 }}>
+                    <Col xs={24} sm={12} md={12} className="pr-3 pb-3">
                         <Form.Item
                             label="Email"
                             name="email"
@@ -199,7 +200,7 @@ export function RegisterPackageForm({ onSubmit }) {
                 <Button 
                     type="primary" 
                     htmlType="submit" 
-                    style={{ width: "100%" }}
+                    className="w-full"
                     loading={imageLoading}
                 >
                     Register Delivery

@@ -1,7 +1,8 @@
 // Layout.tsx
-import React, { useState } from "react";
-import { Layout, Menu, Button } from "antd";
+import React, { useState, useEffect } from "react";
+import { Layout, Menu, Button, Drawer } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { MenuOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
 import UserProfileDrawer from "./UserProfileDrawer";
 import { useAuth } from "../hooks/services/useAuth";
@@ -19,8 +20,18 @@ const ROUTES = {
 export default function AppLayout() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { authenticated, setUserDetails } = useAuth();
+    const { authenticated } = useAuth();
     const [isProfileDrawerVisible, setProfileDrawerVisible] = useState(false);
+    const [isMobileMenuVisible, setMobileMenuVisible] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const menuItems = [
         {
@@ -62,28 +73,53 @@ export default function AppLayout() {
     }
 
     return (
-        <Layout style={{ minHeight: "100vh" }}>
-            <Header
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                }}
-            >
-                <div style={{ color: "white", fontSize: "1.5rem", fontWeight: "bold" }}>
+        <Layout className="min-h-screen">
+            <Header className="flex justify-between items-center px-4">
+                <div className="text-white text-2xl font-bold whitespace-nowrap overflow-hidden text-ellipsis">
                     FastTrack Delivery
                 </div>
 
+                {/* Desktop Menu */}
                 <Menu
                     theme="dark"
                     mode="horizontal"
                     selectedKeys={[location.pathname]}
-                    style={{ flex: 1, justifyContent: "flex-end" }}
+                    className={`flex-1 justify-end ${isMobile ? "hidden" : "flex"} min-w-0`}
                     items={menuItems}
                 />
+
+                {/* Mobile Menu Button */}
+                <Button
+                    type="text"
+                    icon={<MenuOutlined />}
+                    className={`text-white text-xl ${isMobile ? "block" : "hidden"}`}
+                    onClick={() => setMobileMenuVisible(true)}
+                />
+
+                {/* Mobile Menu Drawer */}
+                <Drawer
+                    title="Menu"
+                    placement="right"
+                    onClose={() => setMobileMenuVisible(false)}
+                    open={isMobileMenuVisible}
+                    bodyStyle={{ padding: 0 }}
+                >
+                    <Menu
+                        mode="vertical"
+                        selectedKeys={[location.pathname]}
+                        items={menuItems.map(item => ({
+                            ...item,
+                            onClick: () => {
+                                item.onClick();
+                                setMobileMenuVisible(false);
+                            }
+                        }))}
+                        className="border-none"
+                    />
+                </Drawer>
             </Header>
 
-            <Content style={{ padding: "2rem" }}>
+            <Content className={isMobile ? "p-2" : "p-8"}>
                 <Outlet />
             </Content>
 

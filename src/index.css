@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,4 +14,56 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Responsive styles for mobile devices */
+@media (max-width: 768px) {
+  /* Ensure modals are full width on mobile */
+  .ant-modal {
+    max-width: 95% !important;
+    margin: 10px auto !important;
+  }
+
+  /* Make cards responsive */
+  .ant-card {
+    margin: 8px 0 !important;
+  }
+
+  /* Ensure inputs and buttons are touch-friendly */
+  .ant-input,
+  .ant-btn {
+    min-height: 44px;
+  }
+
+  /* Better spacing for mobile */
+  .ant-list-item {
+    padding: 8px 4px !important;
+  }
+
+  /* Reduce card padding on mobile */
+  .ant-card-body {
+    padding: 12px !important;
+  }
+
+  /* Reduce margins between sections */
+  .ant-card {
+    margin-bottom: 8px !important;
+  }
+
+  /* Reduce header padding */
+  .ant-layout-header {
+    padding: 0 8px !important;
+  }
+
+  /* Prevent horizontal overflow */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Better text wrapping */
+  p, span, div {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
 }

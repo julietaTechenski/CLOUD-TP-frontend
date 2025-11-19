@@ -148,19 +148,25 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
             {/* Estado send-to */}
             {modalState === "send-to" && (
                 <>
-                    <Card style={{marginBottom: 16}}>
-                        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                    <Card className="mb-4">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0">
                             {/* Contenedor de textos a la izquierda */}
-                            <div>
-                                <div style={{display: "flex", alignItems: "center", gap: 8}}>
-                                    <EnvironmentOutlined style={{fontSize: 18, color: "#1890ff"}}/>
-                                    <Text strong>Package on the way to: { lastLocation.action === actions.sentToDepot ? lastDepotName : `${packageData.destination.street}, ${packageData.destination.city}`}</Text>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <EnvironmentOutlined className="text-lg text-[#1890ff]"/>
+                                    <Text strong className="text-[13px] md:text-sm break-words">
+                                        Package on the way to: { lastLocation.action === actions.sentToDepot ? lastDepotName : `${packageData.destination.street}, ${packageData.destination.city}`}
+                                    </Text>
                                 </div>
                                 <Text
-                                    type="secondary">Final destination: {packageData.destination?.street}, {packageData.destination?.city}</Text>
+                                    type="secondary" 
+                                    className="text-xs md:text-[13px] break-words"
+                                >
+                                    Final destination: {packageData.destination?.street}, {packageData.destination?.city}
+                                </Text>
 
                                 { lastLocation.action === actions.sentToFinal &&
-                                    <div style={{marginTop: 8, color: "#749be8"}}>
+                                    <div className="mt-2 text-[#749be8] text-xs md:text-[13px]">
                                         <span>This the package's final destination.</span>
                                     </div>
                                 }
@@ -168,7 +174,7 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
 
                             {/* Dropdown a la derecha */}
                             <Select
-                                style={{width: 120}}
+                                className="w-full md:w-[120px]"
                                 placeholder="Status"
                                 value={shipmentStatus || "pending"}
                                 onChange={setShipmentStatus}
@@ -180,8 +186,11 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
                         </div>
                     </Card>
 
-                    <div style={{textAlign: "right"}}>
-                        <Button style={{marginRight: 8}} onClick={handleCancel}>
+                    <div className="text-left md:text-right flex flex-col md:flex-row gap-2 md:gap-0">
+                        <Button 
+                            className="mr-0 md:mr-2 w-full md:w-auto"
+                            onClick={handleCancel}
+                        >
                             Cancel
                         </Button>
                         <Button
@@ -191,26 +200,31 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
                                     handleConfirmShipment();
                                 }
                             }}
-                            disabled={!shipmentStatus} // deshabilitado hasta seleccionar
+                            disabled={!shipmentStatus}
+                            className="w-full md:w-auto"
                         >
                             Confirm Arrival
                         </Button>
                     </div>
 
                     <Divider />
-                    <Card style={{marginBottom: 16, border: '1px solid #ff4d4f'}}>
-                        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-                            <div style={{paddingRight: 16}}>
-                                <div style={{display: "flex", alignItems: "center", gap: 8}}>
-                                    <Text>Cancel package delivery</Text>
+                    <Card className="mb-4 border border-[#ff4d4f]">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0">
+                            <div className="pr-0 md:pr-4 flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <Text className="text-[13px] md:text-sm">Cancel package delivery</Text>
                                 </div>
                                 <Text
-                                    type="secondary">When pressing this botton you're cancelling the delivery of the package. It will be sent back to the origin location.</Text>
+                                    type="secondary"
+                                    className="text-[11px] md:text-xs break-words"
+                                >
+                                    When pressing this botton you're cancelling the delivery of the package. It will be sent back to the origin location.
+                                </Text>
                             </div>
                             <Button
                                 type="primary"
                                 danger
-                                style={{ marginRight: 8 }}
+                                className="mr-0 md:mr-2 w-full md:w-auto"
                                 onClick={() => setIsCancelModalOpen(true)}
                             >
                                 Cancel delivery
@@ -225,16 +239,16 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
             {/* Estado arrived-at */}
             {modalState === "arrived-at" && (
                 <>
-                    <Card title={actions.create === lastLocation.action ? "Package is ready to be sent": "Package has arrived at one of our warehouses"} style={{marginBottom: 16}}>
-                        <div style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 16}}>
-                            <CheckCircleTwoTone twoToneColor="#52c41a" style={{fontSize: 20}}/>
+                    <Card title={actions.create === lastLocation.action ? "Package is ready to be sent": "Package has arrived at one of our warehouses"} className="mb-4">
+                        <div className="flex items-center gap-2 mb-4">
+                            <CheckCircleTwoTone twoToneColor="#52c41a" className="text-xl"/>
                             {lastLocation.action === actions.create ? "Package at origin location" : `Arrived at: ${lastDepotName}`}
                         </div>
 
-                        <div style={{marginBottom: 12}}>
+                        <div className="mb-3">
                             <Text strong>Select where the package should go next:</Text>
                             <Select
-                                style={{width: "100%", marginTop: 8}}
+                                className="w-full mt-2"
                                 placeholder="Select destination type"
                                 value={destinationType || undefined}
                                 onChange={setDestinationType}
@@ -248,7 +262,7 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
                             <div>
                                 <Text strong>Select a warehouse:</Text>
                                 <Select
-                                    style={{width: "100%", marginTop: 8}}
+                                    className="w-full mt-2"
                                     placeholder="Select warehouse"
                                     value={selectedDepot || undefined}
                                     onChange={setSelectedDepot}
@@ -263,33 +277,41 @@ export default function UpdatePackageModal({onClose, packageData, setPackageUpda
                         )}
                     </Card>
 
-                    <div style={{textAlign: "right"}}>
-                        <Button style={{marginRight: 8}} onClick={handleCancel}>
+                    <div className="text-left md:text-right flex flex-col md:flex-row gap-2 md:gap-0">
+                        <Button 
+                            className="mr-0 md:mr-2 w-full md:w-auto"
+                            onClick={handleCancel}
+                        >
                             Cancel
                         </Button>
                         <Button
                             type="primary"
                             onClick={handleConfirm}
                             disabled={!destinationType || (destinationType === "depot" && !selectedDepot)}
+                            className="w-full md:w-auto"
                         >
                             Confirm destination
                         </Button>
                     </div>
 
                     <Divider />
-                    <Card style={{marginBottom: 16, border: '1px solid #ff4d4f'}}>
-                        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-                            <div style={{paddingRight: 16}}>
-                                <div style={{display: "flex", alignItems: "center", gap: 8}}>
-                                    <Text>Cancel package delivery</Text>
+                    <Card className="mb-4 border border-[#ff4d4f]">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0">
+                            <div className="pr-0 md:pr-4 flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <Text className="text-[13px] md:text-sm">Cancel package delivery</Text>
                                 </div>
                                 <Text
-                                    type="secondary">When pressing this botton you're cancelling the delivery of the package. It will be sent back to the origin location.</Text>
+                                    type="secondary"
+                                    className="text-[11px] md:text-xs break-words"
+                                >
+                                    When pressing this botton you're cancelling the delivery of the package. It will be sent back to the origin location.
+                                </Text>
                             </div>
                             <Button
                                 type="primary"
                                 danger
-                                style={{ marginRight: 8 }}
+                                className="mr-0 md:mr-2 w-full md:w-auto"
                                 onClick={() => setIsCancelModalOpen(true)}
                             >
                                 Cancel delivery

@@ -135,11 +135,11 @@ export default function ScanPackage() {
     const message = scanInfo?.message || "Processing...";
 
     return (
-        <div style={{ padding: "24px", maxWidth: "600px", margin: "0 auto" }}>
+        <div className="p-2 md:p-6 max-w-[600px] mx-auto w-full">
             <Card>
-                <div style={{ textAlign: "center", marginBottom: "24px" }}>
+                <div className="text-center mb-4 md:mb-6">
                     <h2>Package Scan</h2>
-                    <p style={{ fontSize: "18px", fontWeight: "bold", color: "#1890ff" }}>
+                    <p className="text-lg font-bold text-[#1890ff]">
                         Code: {code}
                     </p>
                 </div>
@@ -152,15 +152,15 @@ export default function ScanPackage() {
                         showIcon
                         closable
                         onClose={() => setError(null)}
-                        style={{ marginBottom: "16px" }}
+                        className="mb-4"
                     />
                 )}
 
-                <Card style={{ marginBottom: "16px" }}>
-                    <div style={{ marginBottom: "16px" }}>
+                <Card className="mb-3 md:mb-4">
+                    <div className="mb-2 md:mb-4">
                         <strong>Current Status:</strong> {scanInfo?.current_state || "Unknown"}
                     </div>
-                    <div style={{ marginBottom: "16px" }}>
+                    <div className="mb-2 md:mb-4">
                         <strong>Message:</strong> {message}
                     </div>
                 </Card>
@@ -172,7 +172,7 @@ export default function ScanPackage() {
                             description="This package is in transit. Click the button below to confirm arrival."
                             type="info"
                             showIcon
-                            style={{ marginBottom: "16px" }}
+                            className="mb-3 md:mb-4"
                         />
                         <Button
                             type="primary"
@@ -193,7 +193,7 @@ export default function ScanPackage() {
                             description={message}
                             type="warning"
                             showIcon
-                            style={{ marginBottom: "16px" }}
+                            className="mb-3 md:mb-4"
                         />
                         <Button
                             type="primary"
