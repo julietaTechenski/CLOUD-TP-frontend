@@ -19,7 +19,6 @@ export default function ManagePackages() {
     const [depotsMap, setDepotsMap] = useState({});
     const [filteredPackages, setFilteredPackages] = useState([]);
     const [isRegisterModalVisible, setRegisterModalVisible] = useState(false);
-    const [setUpdateModalVisible] = useState(false)
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [filterText, setFilterText] = useState("");
     const [qrModalVisible, setQrModalVisible] = useState(false);
@@ -208,10 +207,7 @@ export default function ManagePackages() {
                     packages={filteredPackages}
                     depotsMap={depotsMap}
                     onSelectPackage={setSelectedPackage}
-                    onUpdatePackage={(pkg) => {
-                        setSelectedPackage(pkg);
-                        setUpdateModalVisible(true);
-                    }}
+                    onUpdatePackage={setSelectedPackage}
                     onShowQR={showQRCode}
                 />
             )}
@@ -254,10 +250,7 @@ export default function ManagePackages() {
             >
                 {selectedPackage !== null && (
                     <UpdatePackageModal
-                        onClose={() => {
-                            setUpdateModalVisible(false);
-                            setSelectedPackage(null);
-                        }}
+                        onClose={() => setSelectedPackage(null)}
                         packageData={selectedPackage}
                         setPackageUpdated={setPackageUpdated}
                     />
