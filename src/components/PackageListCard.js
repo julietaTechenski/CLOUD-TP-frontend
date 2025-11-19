@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { Card, List, Button, Space, Tag, Select, message } from "antd";
 import { QrcodeOutlined } from "@ant-design/icons";
 
@@ -88,7 +88,7 @@ export default function PackageListCard({
                 dataSource={packages}
                 renderItem={(pkg) => {
                     // Get the first image or the CREATION purpose image
-                    const packageImage = useMemo(() => {
+                    const packageImage = (() => {
                         if (!pkg.images || pkg.images.length === 0) return null;
                         const img = pkg.images.find(img => img.purpose === 'CREATION') || pkg.images[0];
                         // Debug logging
@@ -96,10 +96,10 @@ export default function PackageListCard({
                             console.log(`Package ${pkg.code} image data:`, img);
                         }
                         return img;
-                    }, [pkg.images, pkg.code]);
+                    })();
                     
                     // Try different possible URL fields, or construct from image_id
-                    const imageUrl = useMemo(() => {
+                    const imageUrl = (() => {
                         if (!packageImage) return null;
                         // Backend returns presigned_url (pre-signed S3 URL)
                         if (packageImage.presigned_url) return packageImage.presigned_url;
@@ -113,7 +113,7 @@ export default function PackageListCard({
                             console.warn(`No URL found for package ${pkg.code} image:`, packageImage);
                         }
                         return null;
-                    }, [packageImage, pkg.code]);
+                    })();
                     
                     return (
                     <List.Item className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-0 py-3 px-2 md:py-4 md:px-6">
