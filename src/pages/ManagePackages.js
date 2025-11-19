@@ -9,6 +9,7 @@ import PackageListCard from "../components/PackageListCard";
 import {useTracks} from "../hooks/services/useTracks";
 import {useAuth} from "../hooks/services/useAuth";
 import {useDepots} from "../hooks/services/useDepots";
+import {useImages} from "../hooks/services/useImages";
 
 const { Search } = Input;
 
@@ -32,6 +33,7 @@ export default function ManagePackages() {
     const { getPackages, updatePackagePriority } = usePackages();
     const { getPackageTracks } = useTracks();
     const { getDepotById } = useDepots();
+    const { getPackageImages } = useImages();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,12 +57,20 @@ export default function ManagePackages() {
                     packagesWithAddresses.map(async (pkg) => {
                         try {
                             const tracksRes = await getPackageTracks(pkg.code);
+                            let images = [];
+                            try {
+                                const imagesRes = await getPackageImages(pkg.code);
+                                images = Array.isArray(imagesRes) ? imagesRes : (imagesRes?.data || []);
+                            } catch (imgErr) {
+                                console.error(`Error fetching images for package ${pkg.code}:`, imgErr);
+                            }
                             return {
                                 ...pkg,
                                 track: tracksRes.data || [],
+                                images: images,
                             };
                         } catch {
-                            return { ...pkg, track: [] };
+                            return { ...pkg, track: [], images: [] };
                         }
                     })
                 );
