@@ -603,7 +603,12 @@ export default function TrackPackage() {
                         placeholder: "e.g. 10000001",
                         value: trackingNumber,
                         onChange: (e) => setTrackingNumber(e.target.value),
-                        onKeyPress: (e) => e.key === "Enter" && handleSearch(),
+                        onKeyPress: (e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleSearch();
+                            }
+                        },
                         style: {
                             flex: 1,
                             padding: "12px",
@@ -616,8 +621,12 @@ export default function TrackPackage() {
                     h(
                         "button",
                         {
-                            onClick: handleSearch,
+                            onClick: (e) => {
+                                e.preventDefault();
+                                handleSearch();
+                            },
                             disabled: isLoading,
+                            type: "button",
                             style: {
                                 padding: window.innerWidth <= 768 ? "12px" : "12px 24px",
                                 backgroundColor: isLoading ? "#9ca3af" : "#3b82f6",
