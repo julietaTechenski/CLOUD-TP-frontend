@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { createElement as h } from "react"
 import { useParams } from "react-router-dom"
 import {useTracks} from "../hooks/services/useTracks";
 import {usePackages} from "../hooks/services/usePackages";
 import {useAddresses} from "../hooks/services/useAddresses";
+import { useWebSocket } from "../hooks/useWebSocket";
 const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("en-US", {
@@ -86,15 +87,22 @@ export default function TrackPackage() {
     const {getPackageById} = usePackages()
     const {getAddress} = useAddresses()
     const [error, setError] = useState("")
+    const currentPackageCodeRef = useRef(null);
 
-    // Auto-load package if accessed via public route with code in URL
-    useEffect(() => {
-        if (params?.code) {
-            handleSearch(params.code);
-        }
-    }, [params?.code]);
+    // Initialize WebSocket connection - connect only when viewing a package
+    const websocketUrl = process.env.REACT_APP_WEBSOCKET_URL;
+    const [shouldConnect, setShouldConnect] = useState(false);
+    const { 
+        isConnected, 
+        connectionStatus,
+        subscribe, 
+        unsubscribe, 
+        setMessageCallback,
+        connect: connectWebSocket,
+        disconnect: disconnectWebSocket 
+    } = useWebSocket(shouldConnect ? websocketUrl : null); // Only pass URL when we want to connect
 
-    const handleSearch = async (code = null) => {
+    const handleSearch = useCallback(async (code = null) => {
         const searchCode = code || trackingNumber;
         if (!searchCode.trim()) {
             setError("Please enter a tracking code")
@@ -169,7 +177,80 @@ export default function TrackPackage() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [trackingNumber, getPackageById, getPackageTracks, getAddress]);
+
+    // Auto-load package if accessed via public route with code in URL
+    useEffect(() => {
+        if (params?.code) {
+            handleSearch(params.code);
+        }
+    }, [params?.code, handleSearch]);
+
+    // Set up WebSocket message handler
+    useEffect(() => {
+        setMessageCallback((data) => {
+            // Handle different event types
+            if (data.event === 'package_created' || 
+                data.event === 'package_track_updated' || 
+                data.event === 'image_uploaded') {
+                
+                // Only refresh if this is the package we're currently viewing
+                if (data.package_code && data.package_code === currentPackageCodeRef.current) {
+                    console.log(`WebSocket update received for package ${data.package_code}:`, data.event);
+                    // Refresh package data
+                    handleSearch(data.package_code);
+                }
+            }
+        });
+    }, [setMessageCallback, handleSearch]);
+
+    // Connect WebSocket when viewing a package, disconnect when not
+    useEffect(() => {
+        if (packageData && packageData.trackingNumber && websocketUrl) {
+            const packageCode = packageData.trackingNumber;
+            
+            // Connect WebSocket if not already connected
+            if (!shouldConnect) {
+                setShouldConnect(true);
+            }
+            
+            // Wait for connection, then subscribe
+            if (isConnected) {
+                // Unsubscribe from previous package if different
+                if (currentPackageCodeRef.current && currentPackageCodeRef.current !== packageCode) {
+                    unsubscribe(currentPackageCodeRef.current);
+                }
+                
+                // Subscribe to new package
+                if (currentPackageCodeRef.current !== packageCode) {
+                    currentPackageCodeRef.current = packageCode;
+                    subscribe(packageCode);
+                }
+            }
+        } else {
+            // No package being viewed - unsubscribe and disconnect
+            if (currentPackageCodeRef.current) {
+                unsubscribe(currentPackageCodeRef.current);
+                currentPackageCodeRef.current = null;
+            }
+            
+            // Disconnect WebSocket when no package is being viewed
+            if (shouldConnect) {
+                setShouldConnect(false);
+            }
+        }
+
+        // Cleanup: unsubscribe and disconnect on unmount
+        return () => {
+            if (currentPackageCodeRef.current) {
+                unsubscribe(currentPackageCodeRef.current);
+                currentPackageCodeRef.current = null;
+            }
+            if (shouldConnect) {
+                setShouldConnect(false);
+            }
+        };
+    }, [packageData, isConnected, shouldConnect, subscribe, unsubscribe, websocketUrl]);
 
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
