@@ -52,18 +52,30 @@ export const useWebSocket = (url) => {
 
     // Subscribe to a package code
     const subscribe = useCallback((packageCode) => {
-        if (!packageCode) return false;
+        if (!packageCode) {
+            console.warn('Subscribe called with invalid package code');
+            return false;
+        }
 
         subscriptionsRef.current.add(packageCode);
+        console.log(`Added package ${packageCode} to subscriptions. Current subscriptions:`, Array.from(subscriptionsRef.current));
         
         if (isConnected && wsRef.current?.readyState === WebSocket.OPEN) {
             const userId = getUserId();
-            sendMessage({
+            const subscribeMessage = {
                 action: 'subscribe',
                 package_code: packageCode,
                 user_id: userId,
-            });
-            console.log(`Subscribed to package: ${packageCode}`);
+            };
+            console.log('Sending subscribe message:', subscribeMessage);
+            const sent = sendMessage(subscribeMessage);
+            if (sent) {
+                console.log(`Successfully subscribed to package: ${packageCode}`);
+            } else {
+                console.error(`Failed to send subscribe message for package: ${packageCode}`);
+            }
+        } else {
+            console.log(`WebSocket not connected yet. Subscription queued for package: ${packageCode}. isConnected: ${isConnected}, readyState: ${wsRef.current?.readyState}`);
         }
         return true;
     }, [isConnected, getUserId, sendMessage]);
@@ -115,23 +127,26 @@ export const useWebSocket = (url) => {
             wsRef.current = ws;
 
             ws.onopen = () => {
-                console.log('WebSocket connected');
+                console.log('WebSocket connected successfully');
                 setIsConnected(true);
                 setConnectionStatus('connected');
                 setLastError(null);
                 setReconnectAttempts(0);
 
                 // Resubscribe to all packages using current refs
+                console.log('Resubscribing to packages:', Array.from(subscriptionsRef.current));
                 subscriptionsRef.current.forEach((packageCode) => {
                     const currentUserId = getUserId();
                     const ws = wsRef.current;
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         try {
-                            ws.send(JSON.stringify({
+                            const subscribeMessage = {
                                 action: 'subscribe',
                                 package_code: packageCode,
                                 user_id: currentUserId,
-                            }));
+                            };
+                            console.log('Resubscribing to package:', subscribeMessage);
+                            ws.send(JSON.stringify(subscribeMessage));
                         } catch (error) {
                             console.error('Error resubscribing:', error);
                         }
@@ -153,19 +168,25 @@ export const useWebSocket = (url) => {
 
             ws.onmessage = (event) => {
                 try {
+                    console.log('WebSocket raw message received:', event.data);
                     const data = JSON.parse(event.data);
+                    console.log('WebSocket parsed message:', data);
                     
                     // Handle pong response
                     if (data.action === 'pong') {
+                        console.log('WebSocket pong received');
                         return;
                     }
 
                     // Call the message callback using ref
                     if (messageCallbackRef.current) {
+                        console.log('Calling message callback with data:', data);
                         messageCallbackRef.current(data);
+                    } else {
+                        console.warn('No message callback registered, message ignored:', data);
                     }
                 } catch (error) {
-                    console.error('Error parsing WebSocket message:', error);
+                    console.error('Error parsing WebSocket message:', error, 'Raw data:', event.data);
                     setLastError(error);
                 }
             };

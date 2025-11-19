@@ -90,6 +90,9 @@ export default function TrackPackage() {
     const {getPackageImages} = useImages()
     const [error, setError] = useState("")
     const currentPackageCodeRef = useRef(null);
+    // Store origin and destination for constructing new track locations
+    const originRef = useRef(null);
+    const destinationRef = useRef(null);
 
     // Initialize WebSocket connection - connect only when viewing a package
     const websocketUrl = process.env.REACT_APP_WEBSOCKET_URL;
@@ -130,6 +133,9 @@ export default function TrackPackage() {
             const destinationResponse = await getAddress(packageInfo.destination);
             origin = originResponse.data;
             destination = destinationResponse.data;
+            // Store in refs for WebSocket updates
+            originRef.current = origin;
+            destinationRef.current = destination;
             
             // Get package images
             try {
@@ -190,6 +196,137 @@ export default function TrackPackage() {
         }
     }, [trackingNumber, getPackageById, getPackageTracks, getAddress, getPackageImages]);
 
+    // Update package data directly from WebSocket message (faster than API call)
+    const updatePackageDataFromWebSocket = useCallback((data) => {
+        setPackageData((prevData) => {
+            if (!prevData) return prevData;
+
+            const action = data.action;
+            
+            // Handle image_uploaded event
+            if (action === 'image_uploaded' || action === 'image_upload') {
+                // Construct image object from WebSocket data
+                const imageId = data.image_id || data.id;
+                const imageUrl = data.url || data.image_url || data.download_url ||
+                    (imageId ? `${process.env.REACT_APP_API_URL || ''}/packages/${prevData.trackingNumber}/images/${imageId}` : null);
+                
+                const newImage = {
+                    image_id: imageId,
+                    purpose: data.purpose || 'CREATION',
+                    url: imageUrl,
+                    image_url: data.image_url,
+                    download_url: data.download_url,
+                    timestamp: data.timestamp || new Date().toISOString(),
+                };
+                
+                // Check if image already exists (avoid duplicates)
+                const imageExists = prevData.images?.some(img => 
+                    (img.image_id && newImage.image_id && img.image_id === newImage.image_id) || 
+                    (img.purpose === newImage.purpose && img.timestamp === newImage.timestamp)
+                );
+                
+                if (!imageExists && newImage.image_id) {
+                    console.log('🖼️ Adding new image to package data:', newImage);
+                    return {
+                        ...prevData,
+                        images: [...(prevData.images || []), newImage],
+                    };
+                } else if (imageExists) {
+                    console.log('⏭️ Image already exists, skipping duplicate');
+                }
+            }
+            
+            // Handle package_track_updated event
+            // Track data might be in data.track or directly in data
+            if (action === 'package_track_updated' || action === 'package_track_update') {
+                const track = data.track || data;
+                // Ensure we have required track fields
+                if (!track.action || !track.timestamp) {
+                    console.warn('Invalid track data in WebSocket message:', track);
+                    return prevData;
+                }
+                
+                const actionDetails = getActionDetails(track.action);
+                
+                // Determine location
+                const location = track.depot_name
+                    ? track.depot_name
+                    : track.depot_id
+                        ? `Depósito ${track.depot_id}`
+                        : originRef.current
+                            ? `${originRef.current.city}, ${originRef.current.province}`
+                            : "Ubicación desconocida";
+                
+                // Create new step
+                const newStep = {
+                    id: (track.track_id || track.id || Date.now()).toString(),
+                    title: actionDetails.title,
+                    description: track.comment || track.description || actionDetails.description,
+                    date: formatDate(track.timestamp),
+                    time: formatTime(track.timestamp),
+                    location: location,
+                    status: track.action === "ARRIVED_FINAL" ? "completed" : "current",
+                    icon: actionDetails.icon,
+                };
+                
+                // Check if step already exists (avoid duplicates)
+                const stepExists = prevData.steps?.some(step => 
+                    step.id === newStep.id || 
+                    (step.title === newStep.title && step.date === newStep.date && step.time === newStep.time)
+                );
+                
+                if (!stepExists) {
+                    console.log('📦 Adding new track step to package data:', newStep);
+                    
+                    // Update all previous steps to "completed" and add new step
+                    const updatedSteps = prevData.steps?.map(step => ({
+                        ...step,
+                        status: step.status === "current" ? "completed" : step.status,
+                    })) || [];
+                    
+                    // Add new step at the end (will be reversed in display)
+                    updatedSteps.push(newStep);
+                    
+                    // Update status based on action
+                    let newStatus = prevData.status;
+                    if (track.action === "ARRIVED_FINAL") {
+                        newStatus = "Delivered";
+                    } else if (track.action === "CANCELLED") {
+                        newStatus = "Cancelled";
+                    } else if (track.action === "SEND_DEPOT" || track.action === "SEND_FINAL") {
+                        newStatus = "In Transit";
+                    } else if (track.action === "ARRIVED_DEPOT") {
+                        newStatus = "In Transit";
+                    }
+                    
+                    // Recalculate estimated delivery
+                    const estimatedDelivery = new Date(track.timestamp);
+                    estimatedDelivery.setDate(estimatedDelivery.getDate() + 3);
+                    
+                    return {
+                        ...prevData,
+                        steps: updatedSteps.reverse(), // Reverse to show newest first in timeline
+                        status: newStatus,
+                        estimatedDelivery: formatDate(estimatedDelivery.toISOString()),
+                    };
+                }
+            }
+            
+            // Handle package_created - might need full refresh
+            if (action === 'package_created') {
+                console.log('📦 Package created event - triggering background refresh');
+                // Trigger background refresh for consistency
+                setTimeout(() => {
+                    if (currentPackageCodeRef.current) {
+                        handleSearch(currentPackageCodeRef.current);
+                    }
+                }, 100);
+            }
+            
+            return prevData;
+        });
+    }, [handleSearch]);
+
     // Auto-load package if accessed via public route with code in URL
     useEffect(() => {
         if (params?.code) {
@@ -200,20 +337,53 @@ export default function TrackPackage() {
     // Set up WebSocket message handler
     useEffect(() => {
         setMessageCallback((data) => {
-            // Handle different event types
-            if (data.event === 'package_created' || 
-                data.event === 'package_track_updated' || 
-                data.event === 'image_uploaded') {
+            // Log all incoming messages for debugging
+            console.log('WebSocket message received:', data);
+            
+            // Handle control messages (subscribed, unsubscribed, pong, echo)
+            if (data.action === 'subscribed' || 
+                data.action === 'unsubscribed' || 
+                data.action === 'pong' ||
+                data.action === 'echo') {
+                console.log(`WebSocket control message: ${data.action}`);
+                return;
+            }
+            
+            // Get event type and package code
+            const action = data.action;
+            const packageCode = data.package_code || data.packageCode || data.package_id;
+            
+            // Handle update events
+            if (action === 'package_created' || 
+                action === 'package_track_updated' || 
+                action === 'package_track_update' ||
+                action === 'image_uploaded' ||
+                action === 'image_upload') {
                 
-                // Only refresh if this is the package we're currently viewing
-                if (data.package_code && data.package_code === currentPackageCodeRef.current) {
-                    console.log(`WebSocket update received for package ${data.package_code}:`, data.event);
-                    // Refresh package data
-                    handleSearch(data.package_code);
+                console.log(`🔄 WebSocket event detected: ${action} for package: ${packageCode}`);
+                
+                // Only process if this is the package we're currently viewing
+                if (packageCode && packageCode === currentPackageCodeRef.current) {
+                    console.log(`✅ WebSocket update received for current package ${packageCode}: ${action}`);
+                    
+                    // Update UI immediately using WebSocket data (faster)
+                    updatePackageDataFromWebSocket(data);
+                    
+                    // Optionally refresh in background for consistency (non-blocking)
+                    setTimeout(() => {
+                        if (currentPackageCodeRef.current === packageCode) {
+                            console.log('🔄 Background refresh for consistency');
+                            handleSearch(packageCode);
+                        }
+                    }, 2000); // Refresh after 2 seconds to ensure consistency
+                } else {
+                    console.log(`⏭️ WebSocket update ignored - package code mismatch. Received: ${packageCode}, Current: ${currentPackageCodeRef.current}`);
                 }
+            } else {
+                console.log(`⚠️ WebSocket message ignored - unknown action: ${action || 'none'}. Full message:`, data);
             }
         });
-    }, [setMessageCallback, handleSearch]);
+    }, [setMessageCallback, updatePackageDataFromWebSocket, handleSearch]);
 
     // Connect WebSocket when viewing a package, disconnect when not
     useEffect(() => {
@@ -222,46 +392,54 @@ export default function TrackPackage() {
             
             // Connect WebSocket if not already connected
             if (!shouldConnect) {
+                console.log('Enabling WebSocket connection for package:', packageCode);
                 setShouldConnect(true);
-            }
-            
-            // Wait for connection, then subscribe
-            if (isConnected) {
-                // Unsubscribe from previous package if different
-                if (currentPackageCodeRef.current && currentPackageCodeRef.current !== packageCode) {
-                    unsubscribe(currentPackageCodeRef.current);
-                }
-                
-                // Subscribe to new package
-                if (currentPackageCodeRef.current !== packageCode) {
-                    currentPackageCodeRef.current = packageCode;
-                    subscribe(packageCode);
-                }
             }
         } else {
             // No package being viewed - unsubscribe and disconnect
             if (currentPackageCodeRef.current) {
+                console.log('Unsubscribing from package:', currentPackageCodeRef.current);
                 unsubscribe(currentPackageCodeRef.current);
                 currentPackageCodeRef.current = null;
             }
             
             // Disconnect WebSocket when no package is being viewed
             if (shouldConnect) {
+                console.log('Disabling WebSocket connection');
                 setShouldConnect(false);
             }
         }
+    }, [packageData, websocketUrl, shouldConnect, unsubscribe]);
 
-        // Cleanup: unsubscribe and disconnect on unmount
+    // Subscribe to package when WebSocket is connected
+    useEffect(() => {
+        if (packageData && packageData.trackingNumber && isConnected && websocketUrl) {
+            const packageCode = packageData.trackingNumber;
+            
+            // Unsubscribe from previous package if different
+            if (currentPackageCodeRef.current && currentPackageCodeRef.current !== packageCode) {
+                console.log('Unsubscribing from previous package:', currentPackageCodeRef.current);
+                unsubscribe(currentPackageCodeRef.current);
+            }
+            
+            // Subscribe to new package
+            if (currentPackageCodeRef.current !== packageCode) {
+                console.log('Subscribing to package:', packageCode);
+                currentPackageCodeRef.current = packageCode;
+                subscribe(packageCode);
+            }
+        }
+    }, [packageData, isConnected, websocketUrl, subscribe, unsubscribe]);
+
+    // Cleanup on unmount
+    useEffect(() => {
         return () => {
             if (currentPackageCodeRef.current) {
                 unsubscribe(currentPackageCodeRef.current);
                 currentPackageCodeRef.current = null;
             }
-            if (shouldConnect) {
-                setShouldConnect(false);
-            }
         };
-    }, [packageData, isConnected, shouldConnect, subscribe, unsubscribe, websocketUrl]);
+    }, [unsubscribe]);
 
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
