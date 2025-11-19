@@ -239,7 +239,7 @@ export default function ManagePackages() {
                 onClose={() => setQrModalVisible(false)}
                 packageCode={qrPackageCode}
                 packageData={qrPackageData}
-                mode="tracking"
+                mode={auth.role === "admin" ? "scan" : "tracking"}
             />
 
             {/* Update Status Modal */}
