@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, List, Button, Space, Tag, Select, message, Image } from "antd";
+import { Card, List, Button, Space, Tag, Select, message } from "antd";
 import { QrcodeOutlined } from "@ant-design/icons";
 
 const STATUS_MAP = {
@@ -88,25 +88,53 @@ export default function PackageListCard({
                 dataSource={packages}
                 renderItem={(pkg) => {
                     // Get the first image or the CREATION purpose image
-                    const packageImage = pkg.images && pkg.images.length > 0 
-                        ? (pkg.images.find(img => img.purpose === 'CREATION') || pkg.images[0])
-                        : null;
+                    const packageImage = (() => {
+                        if (!pkg.images || pkg.images.length === 0) return null;
+                        const img = pkg.images.find(img => img.purpose === 'CREATION') || pkg.images[0];
+                        // Debug logging
+                        if (img && process.env.NODE_ENV === 'development') {
+                            console.log(`Package ${pkg.code} image data:`, img);
+                        }
+                        return img;
+                    })();
+                    
                     // Try different possible URL fields, or construct from image_id
-                    const imageUrl = packageImage?.url || packageImage?.image_url || packageImage?.download_url ||
-                        (packageImage?.image_id ? `${process.env.REACT_APP_API_URL || ''}/packages/${pkg.code}/images/${packageImage.image_id}` : null);
+                    const imageUrl = (() => {
+                        if (!packageImage) return null;
+                        // Backend returns presigned_url (pre-signed S3 URL)
+                        if (packageImage.presigned_url) return packageImage.presigned_url;
+                        // Fallback to other possible URL fields
+                        if (packageImage.url) return packageImage.url;
+                        if (packageImage.image_url) return packageImage.image_url;
+                        if (packageImage.download_url) return packageImage.download_url;
+                        if (packageImage.s3_url) return packageImage.s3_url;
+                        // If no URL available, return null (image won't be displayed)
+                        if (process.env.NODE_ENV === 'development') {
+                            console.warn(`No URL found for package ${pkg.code} image:`, packageImage);
+                        }
+                        return null;
+                    })();
                     
                     return (
                     <List.Item className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-0 py-3 px-2 md:py-4 md:px-6">
                         <div className="cursor-default flex-1 w-full md:w-auto flex gap-3">
                             {imageUrl && (
                                 <div className="flex-shrink-0">
-                                    <Image
+                                    <img
                                         src={imageUrl}
                                         alt={`Package ${pkg.code}`}
-                                        width={80}
-                                        height={80}
-                                        style={{ objectFit: 'cover', borderRadius: '4px' }}
-                                        fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect fill='%23f0f0f0' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3ENo Image%3C/text%3E%3C/svg%3E"
+                                        style={{ 
+                                            width: '80px', 
+                                            height: '80px', 
+                                            objectFit: 'cover', 
+                                            borderRadius: '4px',
+                                            backgroundColor: '#f0f0f0'
+                                        }}
+                                        onError={(e) => {
+                                            // Hide image on error instead of showing fallback
+                                            e.target.style.display = 'none';
+                                        }}
+                                        loading="lazy"
                                     />
                                 </div>
                             )}
